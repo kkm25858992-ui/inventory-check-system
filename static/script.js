@@ -16,8 +16,11 @@ function upload() {
         method: 'POST',
         body: formData
     })
-    .then(res => {
-        if (!res.ok) throw new Error("업로드 실패");
+    .then(async res => {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text);
+        }
         return res.json();
     })
     .then(res => {
@@ -30,14 +33,16 @@ function upload() {
         document.getElementById('uploadBox').style.display = 'none';
         render();
     })
-    .catch(() => alert("업로드 실패 (모바일 파일 확인)"));
+    .catch(err => {
+        alert("업로드 실패:\n" + err.message);
+    });
 }
 
 function render() {
     const item = data[currentIndex];
 
     document.getElementById('app').innerHTML = `
-    <div class="card">
+    <div>
 
         <button onclick="download()">다운로드</button>
         <button onclick="share()">공유</button>
