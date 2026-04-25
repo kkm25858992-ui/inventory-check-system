@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, session, redirect
+from flask import Flask, render_template, request, send_file, session, redirect, jsonify
 import pandas as pd
 import io
 import uuid
@@ -31,7 +31,6 @@ def index():
         return redirect('/login')
     return render_template('index.html', data=[])
 
-# 🔥 모바일 안정 업로드
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
@@ -71,7 +70,7 @@ def save():
     file_id = str(uuid.uuid4())
     temp_storage[file_id] = output
 
-    return {"download_url": f"/download/{file_id}"}
+    return jsonify({"download_url": f"/download/{file_id}"})
 
 @app.route('/download/<file_id>')
 def download(file_id):
