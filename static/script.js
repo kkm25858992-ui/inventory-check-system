@@ -1,3 +1,12 @@
+let currentIndex = 0;
+
+// 🔥 상품명 목록 생성
+let productList = [];
+
+function initProductList() {
+    productList = [...new Set(data.map(x => x["상품명"]))];
+}
+
 function render() {
     const item = data[currentIndex];
 
@@ -53,19 +62,8 @@ function enterMove(e){
     }
 }
 
-function next(){
-    if(currentIndex < data.length - 1){
-        currentIndex++;
-        render();
-    }
-}
-
-function prev(){
-    if(currentIndex > 0){
-        currentIndex--;
-        render();
-    }
-}
+function next(){ if(currentIndex < data.length - 1){currentIndex++; render();}}
+function prev(){ if(currentIndex > 0){currentIndex--; render();}}
 
 function same(){
     let stock = data[currentIndex]["재고수량"];
@@ -77,13 +75,40 @@ function same(){
 function addNew() {
     document.getElementById('newItem').innerHTML = `
         <h4>신규 재고 등록</h4>
+
         <input placeholder="로케이션" id="new_loc">
-        <input placeholder="상품명" id="new_name">
+
+        <!-- 🔥 자동완성 -->
+        <input placeholder="상품명" id="new_name" oninput="searchProduct()">
+        <div id="autocomplete"></div>
+
         <input placeholder="소비기한" id="new_exp">
         <input placeholder="로트번호" id="new_lot">
         <input type="number" placeholder="재고수량" id="new_qty">
+
         <button onclick="saveNew()">추가</button>
     `;
+}
+
+function searchProduct() {
+    const keyword = document.getElementById('new_name').value.toLowerCase();
+
+    const filtered = productList.filter(p =>
+        p.toLowerCase().includes(keyword)
+    ).slice(0, 5);
+
+    document.getElementById('autocomplete').innerHTML =
+        filtered.map(p =>
+            `<div onclick="selectProduct('${p}')"
+                style="padding:10px;border-bottom:1px solid #ddd;">
+                ${p}
+            </div>`
+        ).join('');
+}
+
+function selectProduct(name) {
+    document.getElementById('new_name').value = name;
+    document.getElementById('autocomplete').innerHTML = '';
 }
 
 function saveNew() {
@@ -98,6 +123,7 @@ function saveNew() {
     };
 
     data.push(newItem);
+    productList.push(newItem["상품명"]); // 🔥 추가된 상품도 반영
     alert("추가 완료");
 }
 
@@ -122,4 +148,16 @@ function share(){
         navigator.clipboard.writeText(location.origin+res.download_url);
         alert("링크 복사됨");
     });
+}
+
+// 🔥 초기 실행
+if(typeof data !== "undefined" && data.length > 0){
+    data = data.map(x => ({
+        ...x,
+        "실수량": "",
+        "차이수량": ""
+    }));
+
+    initProductList(); // 🔥 핵심
+    render();
 }
