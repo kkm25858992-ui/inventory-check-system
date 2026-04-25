@@ -5,83 +5,29 @@
 <title>ourbox 오산센터 재고조사</title>
 
 <style>
-body {
-    font-family: sans-serif;
-    padding: 15px;
-    background-color: #f0f9f4;
-}
-
-.header {
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #2e7d32;
-}
-
-.upload-box {
-    border: 2px dashed #a5d6a7;
-    padding: 30px;
-    text-align: center;
-    background: #ffffff;
-    margin-bottom: 15px;
-    border-radius: 10px;
-}
+body { font-family: sans-serif; padding: 15px; background:#f0f9f4; }
+.header { text-align:center; font-size:22px; font-weight:bold; color:#2e7d32; }
+.upload-box { border:2px dashed #a5d6a7; padding:30px; background:white; border-radius:10px; }
 
 button {
-    width: 100%;
-    padding: 16px;
-    margin: 6px 0;
-    font-size: 18px;
-    border: none;
-    border-radius: 10px;
-    background-color: #66bb6a;
-    color: white;
+    width:100%; padding:16px; margin:6px 0;
+    font-size:18px; border:none; border-radius:10px;
+    background:#66bb6a; color:white;
 }
 
-button:active {
-    background-color: #43a047;
-}
-
-.nav-buttons {
-    display: flex;
-    gap: 5px;
-    margin-top: 10px;
-}
-
-.nav-buttons button {
-    flex: 1;
-}
-
-.nav-buttons button:nth-child(2) {
-    background-color: #2e7d32;
-}
+.nav-buttons { display:flex; gap:5px; }
+.nav-buttons button { flex:1; }
 
 input {
-    width: 100%;
-    padding: 14px;
-    font-size: 18px;
-    margin-top: 8px;
-    border-radius: 8px;
-    border: 1px solid #c8e6c9;
+    width:100%; padding:14px;
+    font-size:18px; margin-top:8px;
 }
 
 .card {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.suggest-item {
-    padding: 10px;
-    border-bottom: 1px solid #e0e0e0;
-}
-.suggest-item:active {
-    background-color: #e8f5e9;
+    background:white; padding:15px;
+    border-radius:12px;
 }
 </style>
-
 </head>
 
 <body>
@@ -89,8 +35,7 @@ input {
 <div class="header">ourbox 오산센터 재고조사</div>
 
 <div class="upload-box" id="uploadBox">
-    <div>📂 엑셀 파일 업로드</div>
-    <input type="file" id="fileInput">
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
     <button onclick="upload()">업로드 시작</button>
 </div>
 
