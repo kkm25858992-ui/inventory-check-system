@@ -8,20 +8,9 @@
 body { font-family:sans-serif; padding:15px; background:#f0f9f4; }
 .header { text-align:center; font-size:22px; color:#2e7d32; }
 
-.upload-box {
-    background:white;
-    padding:25px;
-    border-radius:10px;
-}
-
 button {
-    width:100%;
-    padding:15px;
-    margin-top:10px;
-    background:#66bb6a;
-    color:white;
-    border:none;
-    border-radius:8px;
+    width:100%; padding:15px; margin-top:10px;
+    background:#66bb6a; color:white; border:none;
 }
 
 .nav-buttons { display:flex; gap:5px; }
@@ -33,13 +22,22 @@ button {
 
 <div class="header">ourbox 오산센터 재고조사</div>
 
-<div class="upload-box" id="uploadBox">
-    <input type="file" id="fileInput"
-        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-    <button onclick="upload()">업로드 시작</button>
-</div>
+<!-- 🔥 form 업로드 -->
+<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx,.xls,.csv">
+    <button type="submit">업로드 시작</button>
+</form>
 
 <div id="app"></div>
+
+<script>
+let data = {{ data|tojson }};
+let currentIndex = 0;
+
+if(data.length > 0){
+    document.getElementById('uploadForm').style.display = 'none';
+}
+</script>
 
 <script src="/static/script.js"></script>
 
