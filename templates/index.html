@@ -2,33 +2,82 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>재고조사</title>
+<title>ourbox 오산센터 재고조사</title>
 
 <style>
 body {
     font-family: sans-serif;
-    padding: 10px;
-}
-button {
-    width: 100%;
     padding: 15px;
-    margin: 5px 0;
+    background-color: #f7f7f7;
+}
+
+/* 상단 타이틀 */
+.header {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* 업로드 영역 */
+.upload-box {
+    border: 2px dashed #aaa;
+    padding: 30px;
+    text-align: center;
+    background: white;
+    margin-bottom: 15px;
+}
+
+.upload-box input {
     font-size: 18px;
-}
-input {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    margin-top: 5px;
-}
-.card {
-    border: 1px solid #ddd;
-    padding: 10px;
     margin-top: 10px;
 }
+
+/* 버튼 */
+button {
+    width: 100%;
+    padding: 16px;
+    margin: 6px 0;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    background-color: #333;
+    color: white;
+}
+
+button:active {
+    background-color: #555;
+}
+
+/* 카드 UI */
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+/* 텍스트 */
+p {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+/* 입력 */
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    margin-top: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* 자동완성 */
 .suggest-item {
-    padding: 8px;
+    padding: 10px;
     border-bottom: 1px solid #ddd;
+    background: white;
 }
 .suggest-item:active {
     background-color: #eee;
@@ -39,10 +88,13 @@ input {
 
 <body>
 
-<h3>재고조사 시스템</h3>
+<div class="header">ourbox 오산센터 재고조사</div>
 
-<input type="file" id="fileInput">
-<button onclick="upload()">엑셀 업로드</button>
+<div class="upload-box">
+    <div>📂 엑셀 파일 업로드</div>
+    <input type="file" id="fileInput">
+    <button onclick="upload()">업로드 시작</button>
+</div>
 
 <div id="app"></div>
 
