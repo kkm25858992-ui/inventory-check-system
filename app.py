@@ -4,7 +4,6 @@ import io
 import uuid
 
 app = Flask(__name__)
-
 temp_storage = {}
 
 @app.route('/')
@@ -16,13 +15,13 @@ def upload():
     file = request.files['file']
     df = pd.read_excel(file)
 
+    # 엑셀 컬럼 그대로 사용
     data = df.to_dict(orient='records')
     return jsonify(data)
 
 @app.route('/save', methods=['POST'])
 def save():
     data = request.json
-
     df = pd.DataFrame(data)
 
     output = io.BytesIO()
@@ -48,4 +47,4 @@ def download(file_id):
                      as_attachment=True)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
