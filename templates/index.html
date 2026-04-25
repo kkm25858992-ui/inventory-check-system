@@ -15,6 +15,8 @@ button {
 
 .nav-buttons { display:flex; gap:5px; }
 .nav-buttons button { flex:1; }
+
+.card { background:white; padding:15px; border-radius:10px; }
 </style>
 </head>
 
@@ -22,7 +24,6 @@ button {
 
 <div class="header">ourbox 오산센터 재고조사</div>
 
-<!-- 🔥 form 업로드 -->
 <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
     <input type="file" name="file" accept=".xlsx,.xls,.csv">
     <button type="submit">업로드 시작</button>
@@ -30,16 +31,32 @@ button {
 
 <div id="app"></div>
 
+<!-- 🔥 data 먼저 선언 -->
 <script>
 let data = {{ data|tojson }};
 let currentIndex = 0;
-
-if(data.length > 0){
-    document.getElementById('uploadForm').style.display = 'none';
-}
 </script>
 
+<!-- 🔥 script.js 로드 -->
 <script src="/static/script.js"></script>
+
+<!-- 🔥 render 실행 보장 -->
+<script>
+window.onload = function() {
+    if (data && data.length > 0) {
+
+        document.getElementById('uploadForm').style.display = 'none';
+
+        data = data.map(x => ({
+            ...x,
+            "실수량": "",
+            "차이수량": ""
+        }));
+
+        render(); // 🔥 핵심
+    }
+};
+</script>
 
 </body>
 </html>
