@@ -5,28 +5,29 @@
 <title>ourbox 오산센터 재고조사</title>
 
 <style>
-body { font-family: sans-serif; padding: 15px; background:#f0f9f4; }
-.header { text-align:center; font-size:22px; font-weight:bold; color:#2e7d32; }
-.upload-box { border:2px dashed #a5d6a7; padding:30px; background:white; border-radius:10px; }
+body { font-family:sans-serif; padding:15px; background:#f0f9f4; }
+.header { text-align:center; font-size:22px; color:#2e7d32; }
+
+.upload-box {
+    background:white;
+    padding:30px;
+    border-radius:10px;
+}
 
 button {
-    width:100%; padding:16px; margin:6px 0;
-    font-size:18px; border:none; border-radius:10px;
-    background:#66bb6a; color:white;
+    width:100%;
+    padding:15px;
+    margin-top:10px;
+    background:#66bb6a;
+    color:white;
+    border:none;
 }
 
-.nav-buttons { display:flex; gap:5px; }
+.nav-buttons {
+    display:flex;
+    gap:5px;
+}
 .nav-buttons button { flex:1; }
-
-input {
-    width:100%; padding:14px;
-    font-size:18px; margin-top:8px;
-}
-
-.card {
-    background:white; padding:15px;
-    border-radius:12px;
-}
 </style>
 </head>
 
@@ -35,7 +36,7 @@ input {
 <div class="header">ourbox 오산센터 재고조사</div>
 
 <div class="upload-box" id="uploadBox">
-    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
     <button onclick="upload()">업로드 시작</button>
 </div>
 
