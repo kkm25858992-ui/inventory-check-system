@@ -14,12 +14,9 @@ function upload() {
     .then(res => res.json())
     .then(res => {
         data = res;
-
         productList = [...new Set(data.map(x => x["상품명"]))];
 
-        // 🔥 업로드 UI 숨김
         document.getElementById('uploadBox').style.display = 'none';
-
         render();
     });
 }
@@ -60,7 +57,14 @@ function render() {
 function calcDiff() {
     const real = document.getElementById('realQty').value;
     const stock = data[currentIndex]["재고수량"] || 0;
-    document.getElementById('diff').innerText = real - stock;
+    const diff = real - stock;
+
+    const el = document.getElementById('diff');
+    el.innerText = diff;
+
+    if (diff > 0) el.style.color = "blue";
+    else if (diff < 0) el.style.color = "red";
+    else el.style.color = "green";
 }
 
 function prev() {
