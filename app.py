@@ -34,32 +34,46 @@ def index():
         return redirect('/login')
     return render_template('index.html')
 
+# 🔥 업로드 (에러 표시 + CSV 지원)
 @app.route('/upload', methods=['POST'])
 def upload():
-    if not session.get('login'):
-        return "Unauthorized", 401
+    try:
+        if not session.get('login'):
+            return "Unauthorized", 401
 
-    if 'file' not in request.files:
-        return "파일 없음", 400
+        if 'file' not in request.files:
+            return "파일 없음", 400
 
-    file = request.files['file']
+        file = request.files['file']
 
-    if file.filename == '':
-        return "파일 선택 안됨", 400
+        if file.filename == '':
+            return "파일 선택 안됨", 400
 
-    df = pd.read_excel(file, engine='openpyxl')
+        filename = file.filename.lower()
 
-    if "소비기한" in df.columns:
-        df["소비기한"] = pd.to_datetime(df["소비기한"], errors='coerce') \
-            .dt.strftime('%Y-%m-%d')
+        # 🔥 CSV or Excel 분기
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file, engine='openpyxl')
 
-    if "로케이션" in df.columns:
-        df = df.sort_values(
-            by="로케이션",
-            key=lambda col: col.map(natural_sort_key)
-        )
+        # 소비기한 변환
+        if "소비기한" in df.columns:
+            df["소비기한"] = pd.to_datetime(df["소비기한"], errors='coerce') \
+                .dt.strftime('%Y-%m-%d')
 
-    return jsonify(df.to_dict(orient='records'))
+        # 로케이션 정렬
+        if "로케이션" in df.columns:
+            df = df.sort_values(
+                by="로케이션",
+                key=lambda col: col.map(natural_sort_key)
+            )
+
+        return jsonify(df.to_dict(orient='records'))
+
+    except Exception as e:
+        return str(e), 500
+
 
 @app.route('/save', methods=['POST'])
 def save():
