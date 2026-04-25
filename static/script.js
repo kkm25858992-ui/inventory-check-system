@@ -49,7 +49,8 @@ function render() {
             pattern="[0-9]*"
             value="${item["실수량"] || ""}" 
             placeholder="실수량 입력"
-            oninput="updateQty()">
+            oninput="updateQty()"
+            onkeydown="handleEnter(event)">
 
         <p>차이수량: <span id="diff">${item["차이수량"] || 0}</span></p>
 
@@ -64,11 +65,18 @@ function render() {
     </div>
     `;
 
-    // 🔥 자동 포커스 유지
+    // 자동 포커스 유지
     setTimeout(() => {
         const input = document.getElementById('realQty');
         if (input) input.focus();
     }, 50);
+}
+
+function handleEnter(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        next();
+    }
 }
 
 function updateQty() {
