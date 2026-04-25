@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로그인</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    background-color: #f0f9f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-box {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 300px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background-color: #66bb6a;
+    color: white;
+    border: none;
+    font-size: 16px;
+}
+</style>
+
+</head>
+
+<body>
+
+<form class="login-box" method="POST" action="/login">
+    <h3>로그인</h3>
+    <input name="id" placeholder="ID">
+    <input name="pw" type="password" placeholder="PASSWORD">
+    <button type="submit">로그인</button>
+</form>
+
+</body>
+</html>
