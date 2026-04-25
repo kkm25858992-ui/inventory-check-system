@@ -10,7 +10,7 @@ body { font-family:sans-serif; padding:15px; background:#f0f9f4; }
 
 .upload-box {
     background:white;
-    padding:30px;
+    padding:25px;
     border-radius:10px;
 }
 
@@ -21,12 +21,10 @@ button {
     background:#66bb6a;
     color:white;
     border:none;
+    border-radius:8px;
 }
 
-.nav-buttons {
-    display:flex;
-    gap:5px;
-}
+.nav-buttons { display:flex; gap:5px; }
 .nav-buttons button { flex:1; }
 </style>
 </head>
@@ -36,7 +34,8 @@ button {
 <div class="header">ourbox 오산센터 재고조사</div>
 
 <div class="upload-box" id="uploadBox">
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <input type="file" id="fileInput"
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
     <button onclick="upload()">업로드 시작</button>
 </div>
 
