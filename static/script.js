@@ -13,10 +13,7 @@ function upload() {
     })
     .then(res => res.json())
     .then(res => {
-        data = res;
-
-        // 🔥 필드 추가 (실수량, 차이수량)
-        data = data.map(item => ({
+        data = res.map(item => ({
             ...item,
             "실수량": "",
             "차이수량": ""
@@ -46,9 +43,12 @@ function render() {
         <p><b>로트번호:</b> ${item["로트번호"]}</p>
         <p><b>재고수량:</b> ${item["재고수량"]}</p>
 
-        <input id="realQty" type="number" 
-            value="${item["실수량"]}" 
-            placeholder="실수량 입력" 
+        <input id="realQty" 
+            type="number"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            value="${item["실수량"] || ""}" 
+            placeholder="실수량 입력"
             oninput="updateQty()">
 
         <p>차이수량: <span id="diff">${item["차이수량"] || 0}</span></p>
@@ -63,6 +63,12 @@ function render() {
         <div id="newItem"></div>
     </div>
     `;
+
+    // 🔥 자동 포커스 유지
+    setTimeout(() => {
+        const input = document.getElementById('realQty');
+        if (input) input.focus();
+    }, 50);
 }
 
 function updateQty() {
@@ -70,9 +76,15 @@ function updateQty() {
     const stock = Number(data[currentIndex]["재고수량"] || 0);
 
     data[currentIndex]["실수량"] = val;
-    data[currentIndex]["차이수량"] = val - stock;
+    const diff = val - stock;
+    data[currentIndex]["차이수량"] = diff;
 
-    render();
+    const el = document.getElementById('diff');
+    el.innerText = diff;
+
+    if (diff > 0) el.style.color = "blue";
+    else if (diff < 0) el.style.color = "red";
+    else el.style.color = "green";
 }
 
 function prev() {
