@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, jsonify, session, redirect
+from flask import Flask, render_template, request, send_file, session, redirect
 import pandas as pd
 import io
 import uuid
@@ -29,55 +29,39 @@ def login():
 def index():
     if not session.get('login'):
         return redirect('/login')
-    return render_template('index.html')
+    return render_template('index.html', data=[])
 
-# 🔥 모바일 업로드 안정화 버전
+# 🔥 모바일 안정 업로드
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
-        if not session.get('login'):
-            return "Unauthorized", 401
-
-        if 'file' not in request.files:
-            return "파일 없음", 400
-
         file = request.files['file']
-
-        if file.filename == '':
-            return "파일 선택 안됨", 400
-
-        # 🔥 파일명 안전 처리
         filename = secure_filename(file.filename.lower())
 
-        # 🔥 CSV / Excel 자동 분기
         if filename.endswith('.csv'):
             df = pd.read_csv(file)
         else:
             df = pd.read_excel(file, engine='openpyxl')
 
-        # 소비기한 처리
         if "소비기한" in df.columns:
             df["소비기한"] = pd.to_datetime(df["소비기한"], errors='coerce') \
                 .dt.strftime('%Y-%m-%d')
 
-        # 로케이션 정렬
         if "로케이션" in df.columns:
             df = df.sort_values(
                 by="로케이션",
                 key=lambda col: col.map(natural_sort_key)
             )
 
-        return jsonify(df.to_dict(orient='records'))
+        data = df.to_dict(orient='records')
+
+        return render_template('index.html', data=data)
 
     except Exception as e:
-        return str(e), 500
-
+        return str(e)
 
 @app.route('/save', methods=['POST'])
 def save():
-    if not session.get('login'):
-        return "Unauthorized", 401
-
     df = pd.DataFrame(request.json)
 
     output = io.BytesIO()
@@ -87,18 +71,11 @@ def save():
     file_id = str(uuid.uuid4())
     temp_storage[file_id] = output
 
-    return jsonify({"download_url": f"/download/{file_id}"})
-
+    return {"download_url": f"/download/{file_id}"}
 
 @app.route('/download/<file_id>')
 def download(file_id):
-    if not session.get('login'):
-        return "Unauthorized", 401
-
     file = temp_storage.get(file_id)
-    if not file:
-        return "파일 없음", 404
-
     return send_file(file,
                      download_name="inventory.xlsx",
                      as_attachment=True)
