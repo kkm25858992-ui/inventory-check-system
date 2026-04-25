@@ -1,43 +1,3 @@
-let data = [];
-let currentIndex = 0;
-
-function upload() {
-    const file = document.getElementById('fileInput').files[0];
-
-    if (!file) {
-        alert("파일 선택하세요");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    fetch('/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(async res => {
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(text);
-        }
-        return res.json();
-    })
-    .then(res => {
-        data = res.map(x => ({
-            ...x,
-            "실수량": "",
-            "차이수량": ""
-        }));
-
-        document.getElementById('uploadBox').style.display = 'none';
-        render();
-    })
-    .catch(err => {
-        alert("업로드 실패:\n" + err.message);
-    });
-}
-
 function render() {
     const item = data[currentIndex];
 
@@ -118,4 +78,9 @@ function share(){
         navigator.clipboard.writeText(location.origin+res.download_url);
         alert("링크 복사됨");
     });
+}
+
+// 🔥 페이지 로드 시 실행
+if(typeof data !== "undefined" && data.length > 0){
+    render();
 }
