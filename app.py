@@ -39,8 +39,15 @@ def upload():
     if not session.get('login'):
         return "Unauthorized", 401
 
+    if 'file' not in request.files:
+        return "파일 없음", 400
+
     file = request.files['file']
-    df = pd.read_excel(file)
+
+    if file.filename == '':
+        return "파일 선택 안됨", 400
+
+    df = pd.read_excel(file, engine='openpyxl')
 
     if "소비기한" in df.columns:
         df["소비기한"] = pd.to_datetime(df["소비기한"], errors='coerce') \
@@ -52,8 +59,7 @@ def upload():
             key=lambda col: col.map(natural_sort_key)
         )
 
-    data = df.to_dict(orient='records')
-    return jsonify(data)
+    return jsonify(df.to_dict(orient='records'))
 
 @app.route('/save', methods=['POST'])
 def save():
