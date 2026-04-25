@@ -11,7 +11,6 @@ body {
     background-color: #f7f7f7;
 }
 
-/* 상단 타이틀 */
 .header {
     text-align: center;
     font-size: 22px;
@@ -19,7 +18,6 @@ body {
     margin-bottom: 15px;
 }
 
-/* 업로드 영역 */
 .upload-box {
     border: 2px dashed #aaa;
     padding: 30px;
@@ -28,12 +26,6 @@ body {
     margin-bottom: 15px;
 }
 
-.upload-box input {
-    font-size: 18px;
-    margin-top: 10px;
-}
-
-/* 버튼 */
 button {
     width: 100%;
     padding: 16px;
@@ -45,25 +37,16 @@ button {
     color: white;
 }
 
-button:active {
-    background-color: #555;
-}
-
-/* 카드 UI */
-.card {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
+.nav-buttons {
+    display: flex;
+    gap: 5px;
     margin-top: 10px;
 }
 
-/* 텍스트 */
-p {
-    font-size: 16px;
-    margin: 5px 0;
+.nav-buttons button {
+    flex: 1;
 }
 
-/* 입력 */
 input {
     width: 100%;
     padding: 14px;
@@ -73,14 +56,15 @@ input {
     border: 1px solid #ccc;
 }
 
-/* 자동완성 */
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+}
+
 .suggest-item {
     padding: 10px;
     border-bottom: 1px solid #ddd;
-    background: white;
-}
-.suggest-item:active {
-    background-color: #eee;
 }
 </style>
 
@@ -90,7 +74,7 @@ input {
 
 <div class="header">ourbox 오산센터 재고조사</div>
 
-<div class="upload-box">
+<div class="upload-box" id="uploadBox">
     <div>📂 엑셀 파일 업로드</div>
     <input type="file" id="fileInput">
     <button onclick="upload()">업로드 시작</button>
