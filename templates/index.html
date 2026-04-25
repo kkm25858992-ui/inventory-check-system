@@ -5,18 +5,75 @@
 <title>ourbox 오산센터 재고조사</title>
 
 <style>
-body { font-family:sans-serif; padding:15px; background:#f0f9f4; }
-.header { text-align:center; font-size:22px; color:#2e7d32; }
-
-button {
-    width:100%; padding:15px; margin-top:10px;
-    background:#66bb6a; color:white; border:none;
+body {
+    font-family:sans-serif;
+    padding:20px;
+    background:#f0f9f4;
 }
 
-.nav-buttons { display:flex; gap:5px; }
-.nav-buttons button { flex:1; }
+/* 제목 */
+.header {
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#2e7d32;
+    margin-bottom:20px;
+}
 
-.card { background:white; padding:15px; border-radius:10px; }
+/* 카드 */
+.card {
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* 텍스트 */
+p {
+    font-size:20px;
+    margin:8px 0;
+}
+
+/* 버튼 */
+button {
+    width:100%;
+    padding:18px;
+    margin-top:10px;
+    font-size:20px;
+    background:#66bb6a;
+    color:white;
+    border:none;
+    border-radius:12px;
+}
+
+/* 입력 */
+input {
+    width:100%;
+    padding:18px;
+    font-size:22px;
+    margin-top:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+/* 하단 버튼 */
+.nav-buttons {
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+.nav-buttons button {
+    flex:1;
+    font-size:18px;
+}
+
+/* 업로드 영역 */
+#uploadForm {
+    background:white;
+    padding:25px;
+    border-radius:15px;
+}
 </style>
 </head>
 
@@ -31,20 +88,16 @@ button {
 
 <div id="app"></div>
 
-<!-- 🔥 data 먼저 선언 -->
 <script>
 let data = {{ data|tojson }};
 let currentIndex = 0;
 </script>
 
-<!-- 🔥 script.js 로드 -->
 <script src="/static/script.js"></script>
 
-<!-- 🔥 render 실행 보장 -->
 <script>
 window.onload = function() {
     if (data && data.length > 0) {
-
         document.getElementById('uploadForm').style.display = 'none';
 
         data = data.map(x => ({
@@ -53,7 +106,7 @@ window.onload = function() {
             "차이수량": ""
         }));
 
-        render(); // 🔥 핵심
+        render();
     }
 };
 </script>
