@@ -9,17 +9,14 @@ app.secret_key = "secret_key_123"
 
 temp_storage = {}
 
-# 자연 정렬
 def natural_sort_key(s):
     return [int(text) if text.isdigit() else text
             for text in re.split('([0-9]+)', str(s))]
 
-# 로그인 페이지
 @app.route('/login')
 def login_page():
     return render_template('login.html')
 
-# 로그인 처리
 @app.route('/login', methods=['POST'])
 def login():
     user_id = request.form.get('id')
@@ -31,7 +28,6 @@ def login():
     else:
         return "로그인 실패"
 
-# 메인 페이지 (로그인 체크)
 @app.route('/')
 def index():
     if not session.get('login'):
