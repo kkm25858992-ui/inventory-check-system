@@ -15,8 +15,10 @@ function upload() {
     .then(res => {
         data = res;
 
-        // 상품명 자동완성 리스트 생성
         productList = [...new Set(data.map(x => x["상품명"]))];
+
+        // 🔥 업로드 UI 숨김
+        document.getElementById('uploadBox').style.display = 'none';
 
         render();
     });
@@ -42,9 +44,11 @@ function render() {
         <input id="realQty" type="number" placeholder="실수량 입력" oninput="calcDiff()">
         <p>차이수량: <span id="diff">0</span></p>
 
-        <button onclick="prev()">이전</button>
-        <button onclick="same()">동일</button>
-        <button onclick="next()">다음</button>
+        <div class="nav-buttons">
+            <button onclick="prev()">이전</button>
+            <button onclick="same()">동일</button>
+            <button onclick="next()">다음</button>
+        </div>
 
         <button onclick="addNew()">신규 재고등록</button>
 
