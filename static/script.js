@@ -14,6 +14,14 @@ function upload() {
     .then(res => res.json())
     .then(res => {
         data = res;
+
+        // 🔥 필드 추가 (실수량, 차이수량)
+        data = data.map(item => ({
+            ...item,
+            "실수량": "",
+            "차이수량": ""
+        }));
+
         productList = [...new Set(data.map(x => x["상품명"]))];
 
         document.getElementById('uploadBox').style.display = 'none';
@@ -38,8 +46,12 @@ function render() {
         <p><b>로트번호:</b> ${item["로트번호"]}</p>
         <p><b>재고수량:</b> ${item["재고수량"]}</p>
 
-        <input id="realQty" type="number" placeholder="실수량 입력" oninput="calcDiff()">
-        <p>차이수량: <span id="diff">0</span></p>
+        <input id="realQty" type="number" 
+            value="${item["실수량"]}" 
+            placeholder="실수량 입력" 
+            oninput="updateQty()">
+
+        <p>차이수량: <span id="diff">${item["차이수량"] || 0}</span></p>
 
         <div class="nav-buttons">
             <button onclick="prev()">이전</button>
@@ -48,23 +60,19 @@ function render() {
         </div>
 
         <button onclick="addNew()">신규 재고등록</button>
-
         <div id="newItem"></div>
     </div>
     `;
 }
 
-function calcDiff() {
-    const real = document.getElementById('realQty').value;
-    const stock = data[currentIndex]["재고수량"] || 0;
-    const diff = real - stock;
+function updateQty() {
+    const val = Number(document.getElementById('realQty').value || 0);
+    const stock = Number(data[currentIndex]["재고수량"] || 0);
 
-    const el = document.getElementById('diff');
-    el.innerText = diff;
+    data[currentIndex]["실수량"] = val;
+    data[currentIndex]["차이수량"] = val - stock;
 
-    if (diff > 0) el.style.color = "blue";
-    else if (diff < 0) el.style.color = "red";
-    else el.style.color = "green";
+    render();
 }
 
 function prev() {
@@ -78,8 +86,11 @@ function next() {
 }
 
 function same() {
-    document.getElementById('realQty').value = data[currentIndex]["재고수량"];
-    calcDiff();
+    const stock = Number(data[currentIndex]["재고수량"] || 0);
+
+    data[currentIndex]["실수량"] = stock;
+    data[currentIndex]["차이수량"] = 0;
+
     next();
 }
 
@@ -122,7 +133,9 @@ function saveNew() {
         "상품명": document.getElementById('new_name').value,
         "소비기한": document.getElementById('new_exp').value,
         "로트번호": document.getElementById('new_lot').value,
-        "재고수량": Number(document.getElementById('new_qty').value || 0)
+        "재고수량": Number(document.getElementById('new_qty').value || 0),
+        "실수량": "",
+        "차이수량": ""
     };
 
     data.push(newItem);
