@@ -14,8 +14,6 @@ def index():
 def upload():
     file = request.files['file']
     df = pd.read_excel(file)
-
-    # 엑셀 컬럼 그대로 사용
     data = df.to_dict(orient='records')
     return jsonify(data)
 
@@ -38,7 +36,6 @@ def save():
 @app.route('/download/<file_id>')
 def download(file_id):
     file = temp_storage.get(file_id)
-
     if not file:
         return "파일 없음", 404
 
