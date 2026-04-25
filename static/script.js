@@ -1,5 +1,3 @@
-let currentIndex = 0;
-
 function render() {
     const item = data[currentIndex];
 
@@ -36,10 +34,6 @@ function render() {
 
     </div>
     `;
-
-    setTimeout(() => {
-        document.getElementById('realQty').focus();
-    }, 50);
 }
 
 function updateQty() {
@@ -83,13 +77,11 @@ function same(){
 function addNew() {
     document.getElementById('newItem').innerHTML = `
         <h4>신규 재고 등록</h4>
-
         <input placeholder="로케이션" id="new_loc">
         <input placeholder="상품명" id="new_name">
         <input placeholder="소비기한" id="new_exp">
         <input placeholder="로트번호" id="new_lot">
         <input type="number" placeholder="재고수량" id="new_qty">
-
         <button onclick="saveNew()">추가</button>
     `;
 }
@@ -130,14 +122,4 @@ function share(){
         navigator.clipboard.writeText(location.origin+res.download_url);
         alert("링크 복사됨");
     });
-}
-
-// 🔥 최초 실행
-if(typeof data !== "undefined" && data.length > 0){
-    data = data.map(x => ({
-        ...x,
-        "실수량": "",
-        "차이수량": ""
-    }));
-    render();
 }
