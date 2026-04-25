@@ -3,6 +3,38 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>재고조사</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    padding: 10px;
+}
+button {
+    width: 100%;
+    padding: 15px;
+    margin: 5px 0;
+    font-size: 18px;
+}
+input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 5px;
+}
+.card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+}
+.suggest-item {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+.suggest-item:active {
+    background-color: #eee;
+}
+</style>
+
 </head>
 
 <body>
@@ -10,7 +42,7 @@
 <h3>재고조사 시스템</h3>
 
 <input type="file" id="fileInput">
-<button onclick="upload()">업로드</button>
+<button onclick="upload()">엑셀 업로드</button>
 
 <div id="app"></div>
 
