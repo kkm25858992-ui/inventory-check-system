@@ -44,7 +44,7 @@ button {
     margin-top:10px;
 }
 
-/* 🔥 자동완성 */
+/* 자동완성 */
 .autocomplete-items {
     border:1px solid #ddd;
     max-height:150px;
@@ -94,8 +94,25 @@ let data = {{ data|tojson }};
 let currentIndex = 0;
 let productList = [];
 
-// 🔥 초기화
+// 🔥 이어하기 + 초기화
 window.onload = function(){
+
+    let saved = localStorage.getItem("inventoryData");
+
+    if(saved){
+        if(confirm("이전에 작업한 데이터가 있습니다.\n이어하시겠습니까?")){
+            data = JSON.parse(saved);
+
+            let savedIndex = localStorage.getItem("currentIndex");
+            if(savedIndex){
+                currentIndex = Number(savedIndex);
+            }
+        }else{
+            localStorage.removeItem("inventoryData");
+            localStorage.removeItem("currentIndex");
+        }
+    }
+
     if(data.length > 0){
         document.getElementById('uploadForm').style.display = 'none';
         initProductList();
@@ -103,7 +120,7 @@ window.onload = function(){
     }
 };
 
-// 🔥 상품 리스트 생성
+// 🔥 상품 리스트
 function initProductList(){
     productList = [...new Set(data.map(d => d["상품명"]))];
 }
@@ -134,13 +151,13 @@ function autocomplete(){
     });
 }
 
-// 🔥 신규 UI
+// 🔥 신규 UI 토글
 function toggleNewItem(){
     const box = document.getElementById('newItemBox');
 
     if(box.style.display === 'none'){
         box.style.display = 'block';
-        autocomplete(); // 🔥 자동완성 연결
+        autocomplete();
     }else{
         box.style.display = 'none';
     }
