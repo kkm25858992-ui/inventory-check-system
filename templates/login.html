@@ -6,48 +6,54 @@
 
 <style>
 body {
-    font-family: sans-serif;
-    background-color: #f0f9f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    font-family:sans-serif;
+    background:#f0f9f4;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
 
-.login-box {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 300px;
+.box {
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    width:90%;
+    max-width:350px;
+}
+
+h2 {
+    text-align:center;
+    color:#2e7d32;
 }
 
 input {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    font-size: 16px;
+    width:100%;
+    padding:15px;
+    margin-top:10px;
+    font-size:16px;
 }
 
 button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 15px;
-    background-color: #66bb6a;
-    color: white;
-    border: none;
-    font-size: 16px;
+    width:100%;
+    padding:15px;
+    margin-top:15px;
+    background:#66bb6a;
+    color:white;
+    border:none;
+    font-size:16px;
 }
 </style>
-
 </head>
 
 <body>
 
-<form class="login-box" method="POST" action="/login">
-    <h3>로그인</h3>
-    <input name="id" placeholder="ID">
-    <input name="pw" type="password" placeholder="PASSWORD">
+<form class="box" method="post">
+    <h2>로그인</h2>
+
+    <input name="id" placeholder="아이디">
+    <input name="pw" type="password" placeholder="비밀번호">
+
     <button type="submit">로그인</button>
 </form>
 
