@@ -55,7 +55,7 @@ def index():
     return render_template('index.html', data=[])
 
 
-# 📥 엑셀 업로드
+# 📥 엑셀 업로드 (컬럼 유연)
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
@@ -115,7 +115,7 @@ def save():
         return str(e)
 
 
-# 🔥 다운로드 (로그인 없이 바로 다운로드)
+# 📥 다운로드 (로그인 없이 가능)
 @app.route('/download/<file_id>')
 def download(file_id):
     file_path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
@@ -128,6 +128,46 @@ def download(file_id):
         download_name="inventory.xlsx",
         as_attachment=True
     )
+
+
+# 📊 관리자 페이지
+@app.route('/admin')
+def admin():
+    if not session.get('login'):
+        return redirect('/login')
+
+    files = []
+
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+        if os.path.isfile(file_path):
+            created_time = time.strftime(
+                '%Y-%m-%d %H:%M:%S',
+                time.localtime(os.path.getmtime(file_path))
+            )
+
+            files.append({
+                "id": filename.replace(".xlsx",""),
+                "name": filename,
+                "time": created_time
+            })
+
+    files = sorted(files, key=lambda x: x["time"], reverse=True)
+
+    return render_template('admin.html', files=files)
+
+
+# ❌ 파일 삭제
+@app.route('/delete/<file_id>', methods=['POST'])
+def delete_file(file_id):
+    file_path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return "삭제 완료"
+
+    return "파일 없음"
 
 
 if __name__ == '__main__':
