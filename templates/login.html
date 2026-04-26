@@ -37,11 +37,19 @@ input {
 button {
     width:100%;
     padding:15px;
-    margin-top:15px;
+    margin-top:10px;
     background:#66bb6a;
     color:white;
     border:none;
     font-size:16px;
+}
+
+.role-btn {
+    background:#a5d6a7;
+}
+
+.active {
+    background:#2e7d32;
 }
 </style>
 </head>
@@ -49,13 +57,37 @@ button {
 <body>
 
 <form class="box" method="post">
-    <h2>로그인</h2>
+
+    <h2 id="title">재고조사 로그인</h2>
+
+    <button type="button" class="role-btn active" onclick="setRole('user', this)">일반 사용자</button>
+    <button type="button" class="role-btn" onclick="setRole('admin', this)">관리자</button>
 
     <input name="id" placeholder="아이디">
     <input name="pw" type="password" placeholder="비밀번호">
 
+    <input type="hidden" name="role" id="role" value="user">
+
     <button type="submit">로그인</button>
+
 </form>
+
+<script>
+function setRole(role, el){
+    document.getElementById('role').value = role;
+
+    const btns = document.querySelectorAll('.role-btn');
+    btns.forEach(b=>b.classList.remove('active'));
+
+    el.classList.add('active');
+
+    if(role === 'admin'){
+        document.getElementById('title').innerText = "관리자 로그인";
+    }else{
+        document.getElementById('title').innerText = "재고조사 로그인";
+    }
+}
+</script>
 
 </body>
 </html>
