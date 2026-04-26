@@ -27,27 +27,44 @@ h2 {
     color:#2e7d32;
 }
 
-/* 🔥 핵심: 전부 동일하게 맞춤 */
-input, button {
+/* 🔥 입력창 따로 */
+input {
     width:100%;
     padding:15px;
     margin-top:10px;
     font-size:16px;
-    box-sizing:border-box; /* ← 이게 핵심 */
+    box-sizing:border-box;
 }
 
-button {
+/* 🔥 로그인 버튼 */
+.login-btn {
+    width:100%;
+    padding:15px;
+    margin-top:10px;
     background:#66bb6a;
     color:white;
     border:none;
+    font-size:16px;
+}
+
+/* 🔥 역할 선택 버튼 (예전 느낌 유지) */
+.role-container {
+    display:flex;
+    gap:10px;
+    margin-top:10px;
 }
 
 .role-btn {
-    background:#a5d6a7;
+    flex:1;
+    padding:12px;
+    background:#c8e6c9;
+    border:none;
+    font-size:14px;
 }
 
 .active {
     background:#2e7d32;
+    color:white;
 }
 </style>
 </head>
@@ -58,15 +75,18 @@ button {
 
     <h2 id="title">재고조사 로그인</h2>
 
-    <button type="button" class="role-btn active" onclick="setRole('user', this)">일반 사용자</button>
-    <button type="button" class="role-btn" onclick="setRole('admin', this)">관리자</button>
+    <!-- 🔥 역할 선택 (가로 정렬) -->
+    <div class="role-container">
+        <button type="button" class="role-btn active" onclick="setRole('user', this)">사용자</button>
+        <button type="button" class="role-btn" onclick="setRole('admin', this)">관리자</button>
+    </div>
 
     <input name="id" placeholder="아이디">
     <input name="pw" type="password" placeholder="비밀번호">
 
     <input type="hidden" name="role" id="role" value="user">
 
-    <button type="submit">로그인</button>
+    <button type="submit" class="login-btn">로그인</button>
 
 </form>
 
