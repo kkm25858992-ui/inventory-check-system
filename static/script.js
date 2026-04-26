@@ -1,128 +1,88 @@
-let productList = [];
+// 🔥 현재 데이터 렌더링
+function render(){
+    if(data.length === 0) return;
 
-function initProductList() {
-    productList = [...new Set(data.map(x => x["상품명"]))];
+    let item = data[currentIndex];
+
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <p><b>로케이션:</b> ${item["로케이션"]}</p>
+            <p><b>상품명:</b> ${item["상품명"]}</p>
+            <p><b>소비기한:</b> ${item["소비기한"] || ""}</p>
+            <p><b>로트번호:</b> ${item["로트번호"] || ""}</p>
+            <p><b>재고수량:</b> ${item["재고수량"]}</p>
+
+            <input id="real_qty" placeholder="실수량"
+                value="${item["실수량"] || ""}"
+                inputmode="numeric"
+                oninput="updateDiff()"
+                onkeydown="enterNext(event)">
+
+            <p>차이수량: <span id="diff">0</span></p>
+
+            <div class="nav-buttons">
+                <button onclick="prev()">이전</button>
+                <button onclick="same()">동일</button>
+                <button onclick="next()">다음</button>
+            </div>
+
+            <button onclick="download()">다운로드</button>
+            <button onclick="share()">공유</button>
+        </div>
+    `;
+
+    updateDiff();
 }
 
-function autoSave(){
+// 🔥 차이 계산
+function updateDiff(){
+    let input = document.getElementById('real_qty');
+    if(!input) return;
+
+    let real = Number(input.value || 0);
+    let stock = Number(data[currentIndex]["재고수량"]);
+
+    let diff = real - stock;
+
+    document.getElementById('diff').innerText = diff;
+
+    data[currentIndex]["실수량"] = real;
+    data[currentIndex]["차이수량"] = diff;
+
     localStorage.setItem("inventoryData", JSON.stringify(data));
 }
 
-// 🔥 5초 자동 저장
-setInterval(()=>{
-    if(data && data.length > 0){
-        autoSave();
+// 🔥 Enter → 다음
+function enterNext(e){
+    if(e.key === "Enter"){
+        next();
     }
-},5000);
-
-function render() {
-    const item = data[currentIndex];
-
-    document.getElementById('app').innerHTML = `
-    <div class="card">
-
-        <button onclick="download()">다운로드</button>
-        <button onclick="share()">공유</button>
-
-        <p>로케이션: ${item["로케이션"]}</p>
-        <p>상품명: ${item["상품명"]}</p>
-        <p>소비기한: ${item["소비기한"]}</p>
-        <p>로트번호: ${item["로트번호"]}</p>
-        <p>재고수량: ${item["재고수량"]}</p>
-
-        <input id="realQty" type="number"
-            value="${item["실수량"] || ""}"
-            oninput="updateQty()"
-            onkeydown="enterMove(event)">
-
-        <p>차이수량: <span id="diff">${item["차이수량"] || 0}</span></p>
-
-        <div class="nav-buttons">
-            <button onclick="prev()">이전</button>
-            <button onclick="same()">동일</button>
-            <button onclick="next()">다음</button>
-        </div>
-
-        <button onclick="addNew()">신규 재고등록</button>
-        <div id="newItem"></div>
-
-    </div>
-    `;
 }
 
-function updateQty() {
-    const val = Number(document.getElementById('realQty').value || 0);
-    const stock = Number(data[currentIndex]["재고수량"] || 0);
-
-    data[currentIndex]["실수량"] = val;
-    data[currentIndex]["차이수량"] = val - stock;
-
-    document.getElementById('diff').innerText = val - stock;
-
-    autoSave();
+// 🔥 이동
+function next(){
+    if(currentIndex < data.length - 1){
+        currentIndex++;
+        render();
+    }
 }
 
-function enterMove(e){
-    if(e.key==="Enter"){ next(); }
+function prev(){
+    if(currentIndex > 0){
+        currentIndex--;
+        render();
+    }
 }
-
-function next(){ if(currentIndex < data.length-1){currentIndex++; render();}}
-function prev(){ if(currentIndex > 0){currentIndex--; render();}}
 
 function same(){
     let stock = data[currentIndex]["재고수량"];
-    data[currentIndex]["실수량"]=stock;
-    data[currentIndex]["차이수량"]=0;
+    data[currentIndex]["실수량"] = stock;
+    data[currentIndex]["차이수량"] = 0;
+
     next();
 }
 
-function addNew() {
-    document.getElementById('newItem').innerHTML = `
-        <input placeholder="로케이션" id="new_loc">
-        <input placeholder="상품명" id="new_name" oninput="searchProduct()">
-        <div id="autocomplete"></div>
-        <input placeholder="소비기한" id="new_exp">
-        <input placeholder="로트번호" id="new_lot">
-        <input type="number" placeholder="재고수량" id="new_qty">
-        <button onclick="saveNew()">추가</button>
-    `;
-}
-
-function searchProduct() {
-    const keyword = document.getElementById('new_name').value.toLowerCase();
-
-    const result = productList.filter(p =>
-        p.toLowerCase().includes(keyword)
-    ).slice(0,5);
-
-    document.getElementById('autocomplete').innerHTML =
-        result.map(p => `<div onclick="selectProduct('${p}')">${p}</div>`).join('');
-}
-
-function selectProduct(name) {
-    document.getElementById('new_name').value = name;
-    document.getElementById('autocomplete').innerHTML = '';
-}
-
-function saveNew() {
-    const newItem = {
-        "로케이션": document.getElementById('new_loc').value,
-        "상품명": document.getElementById('new_name').value,
-        "소비기한": document.getElementById('new_exp').value,
-        "로트번호": document.getElementById('new_lot').value,
-        "재고수량": Number(document.getElementById('new_qty').value || 0),
-        "실수량": "",
-        "차이수량": ""
-    };
-
-    data.push(newItem);
-    productList.push(newItem["상품명"]);
-
-    autoSave();
-
-    alert("추가 완료");
-}
-
+// 🔥 다운로드
 function download(){
     fetch('/save',{
         method:'POST',
@@ -131,11 +91,11 @@ function download(){
     })
     .then(res=>res.json())
     .then(res=>{
-        localStorage.removeItem("inventoryData");
-        location.href=res.download_url;
+        window.location = res.download_url;
     });
 }
 
+// 🔥 공유
 function share(){
     fetch('/save',{
         method:'POST',
@@ -144,7 +104,51 @@ function share(){
     })
     .then(res=>res.json())
     .then(res=>{
-        navigator.clipboard.writeText(location.origin+res.download_url);
-        alert("링크 복사됨");
+        const url = location.origin + res.download_url;
+        navigator.clipboard.writeText(url);
+        alert("다운로드 링크 복사됨");
     });
+}
+
+// 🔥 신규 UI 토글
+function toggleNewItem(){
+    const box = document.getElementById('newItemBox');
+    box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+}
+
+// 🔥 신규 추가
+function addNewItem(){
+    let location = document.getElementById('new_location').value;
+    let name = document.getElementById('new_name').value;
+    let exp = document.getElementById('new_exp').value;
+    let lot = document.getElementById('new_lot').value;
+    let qty = document.getElementById('new_qty').value;
+
+    if(!location || !name || !qty){
+        alert("필수값 입력");
+        return;
+    }
+
+    data.push({
+        "로케이션": location,
+        "상품명": name,
+        "소비기한": exp,
+        "로트번호": lot,
+        "재고수량": qty,
+        "실수량": "",
+        "차이수량": ""
+    });
+
+    localStorage.setItem("inventoryData", JSON.stringify(data));
+
+    // 🔥 UI 닫기 + 초기화
+    document.getElementById('newItemBox').style.display = 'none';
+
+    document.getElementById('new_location').value = "";
+    document.getElementById('new_name').value = "";
+    document.getElementById('new_exp').value = "";
+    document.getElementById('new_lot').value = "";
+    document.getElementById('new_qty').value = "";
+
+    render();
 }
