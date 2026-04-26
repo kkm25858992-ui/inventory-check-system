@@ -1,17 +1,43 @@
 from flask import Flask, render_template, request, send_file, session, redirect, jsonify
 import pandas as pd
-import io
 import uuid
+import os
+import time
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "secret_key_123"
 
-temp_storage = {}
+# 📁 파일 저장 폴더
+UPLOAD_FOLDER = "files"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# ⏱ 파일 유지 시간 (초) → 1시간
+FILE_EXPIRE_TIME = 60 * 60
+
+
+# 🔥 오래된 파일 자동 삭제 함수
+def delete_old_files():
+    now = time.time()
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+        if os.path.isfile(file_path):
+            file_time = os.path.getmtime(file_path)
+
+            # 🔥 1시간 지난 파일 삭제
+            if now - file_time > FILE_EXPIRE_TIME:
+                try:
+                    os.remove(file_path)
+                except:
+                    pass
+
+
+# 🔐 로그인
 @app.route('/login')
 def login_page():
     return render_template('login.html')
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -20,27 +46,29 @@ def login():
         return redirect('/')
     return "로그인 실패"
 
+
+# 🏠 메인
 @app.route('/')
 def index():
     if not session.get('login'):
         return redirect('/login')
     return render_template('index.html', data=[])
 
-# 🔥 업로드 (컬럼 유연 + 안정 버전)
+
+# 📥 업로드 (컬럼 유연 + 안정)
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
         file = request.files['file']
         filename = secure_filename(file.filename.lower())
 
-        # 🔥 전체 읽기 (컬럼 유연 처리)
         if filename.endswith('.csv'):
             df = pd.read_csv(file)
         else:
             df = pd.read_excel(file, engine='openpyxl')
 
         # 🔥 필수 컬럼 체크
-        required_cols = ["로케이션","상품명","재고수량"]
+        required_cols = ["로케이션", "상품명", "재고수량"]
         for col in required_cols:
             if col not in df.columns:
                 return f"❌ {col} 컬럼이 없습니다."
@@ -49,18 +77,16 @@ def upload():
         if "소비기한" not in df.columns:
             df["소비기한"] = ""
         else:
-            # 값이 있을 경우만 날짜 포맷 유지
             df["소비기한"] = df["소비기한"].astype(str).str[:10]
 
         if "로트번호" not in df.columns:
             df["로트번호"] = ""
 
-        # 🔥 로케이션 정렬
-        if "로케이션" in df.columns:
-            df = df.sort_values(by="로케이션")
+        # 🔥 정렬
+        df = df.sort_values(by="로케이션")
 
-        # 🔥 필요한 컬럼만 유지
-        df = df[["로케이션","상품명","소비기한","로트번호","재고수량"]]
+        # 🔥 컬럼 정리
+        df = df[["로케이션", "상품명", "소비기한", "로트번호", "재고수량"]]
 
         data = df.to_dict(orient='records')
 
@@ -69,23 +95,41 @@ def upload():
     except Exception as e:
         return f"업로드 오류: {str(e)}"
 
+
+# 💾 저장 + 자동 삭제 실행
 @app.route('/save', methods=['POST'])
 def save():
-    df = pd.DataFrame(request.json)
+    try:
+        # 🔥 오래된 파일 삭제 실행
+        delete_old_files()
 
-    output = io.BytesIO()
-    df.to_excel(output, index=False)
-    output.seek(0)
+        df = pd.DataFrame(request.json)
 
-    file_id = str(uuid.uuid4())
-    temp_storage[file_id] = output
+        file_id = str(uuid.uuid4())
+        file_path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
 
-    return jsonify({"download_url": f"/download/{file_id}"})
+        df.to_excel(file_path, index=False)
 
+        return jsonify({"download_url": f"/download/{file_id}"})
+
+    except Exception as e:
+        return str(e)
+
+
+# 📥 다운로드
 @app.route('/download/<file_id>')
 def download(file_id):
-    file = temp_storage.get(file_id)
-    return send_file(file, download_name="inventory.xlsx", as_attachment=True)
+    file_path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
+    if not os.path.exists(file_path):
+        return "파일이 존재하지 않습니다."
+
+    return send_file(
+        file_path,
+        download_name="inventory.xlsx",
+        as_attachment=True
+    )
+
 
 if __name__ == '__main__':
     app.run(debug=True)
