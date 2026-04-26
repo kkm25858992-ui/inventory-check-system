@@ -1,20 +1,23 @@
 function render(){
     if(data.length === 0) return;
 
-    // 🔥 항상 표시 보장
     document.getElementById('newItemBtn').style.display = 'block';
 
     localStorage.setItem("currentIndex", currentIndex);
 
     let item = data[currentIndex];
 
+    // 🔥 재고수량 안전 표시
+    let stock = parseFloat(item["재고수량"]);
+    if(isNaN(stock)) stock = 0;
+
     document.getElementById('app').innerHTML = `
         <div class="card">
-            <p><b>로케이션:</b> ${item["로케이션"]}</p>
-            <p><b>상품명:</b> ${item["상품명"]}</p>
+            <p><b>로케이션:</b> ${item["로케이션"] || ""}</p>
+            <p><b>상품명:</b> ${item["상품명"] || ""}</p>
             <p><b>소비기한:</b> ${item["소비기한"] || ""}</p>
             <p><b>로트번호:</b> ${item["로트번호"] || ""}</p>
-            <p><b>재고수량:</b> ${item["재고수량"]}</p>
+            <p><b>재고수량:</b> ${stock}</p>
 
             <input id="real_qty"
                 placeholder="실수량"
@@ -39,9 +42,18 @@ function render(){
     updateDiff();
 }
 
+// 🔥 NaN 완전 방지
 function updateDiff(){
-    let real = Number(document.getElementById('real_qty').value || 0);
-    let stock = Number(data[currentIndex]["재고수량"]);
+
+    let input = document.getElementById('real_qty');
+    if(!input) return;
+
+    let real = parseFloat(input.value);
+    let stock = parseFloat(data[currentIndex]["재고수량"]);
+
+    // 🔥 안전 처리
+    if(isNaN(real)) real = 0;
+    if(isNaN(stock)) stock = 0;
 
     let diff = real - stock;
 
@@ -53,6 +65,7 @@ function updateDiff(){
     localStorage.setItem("inventoryData", JSON.stringify(data));
 }
 
+// 🔥 Enter → 다음
 function enterNext(e){
     if(e.key === "Enter"){
         e.preventDefault();
@@ -75,7 +88,9 @@ function prev(){
 }
 
 function same(){
-    let stock = data[currentIndex]["재고수량"];
+    let stock = parseFloat(data[currentIndex]["재고수량"]);
+    if(isNaN(stock)) stock = 0;
+
     data[currentIndex]["실수량"] = stock;
     data[currentIndex]["차이수량"] = 0;
 
@@ -84,6 +99,7 @@ function same(){
     next();
 }
 
+// 다운로드
 function download(){
     fetch('/save',{
         method:'POST',
@@ -96,6 +112,7 @@ function download(){
     });
 }
 
+// 공유
 function share(){
     fetch('/save',{
         method:'POST',
@@ -110,7 +127,9 @@ function share(){
     });
 }
 
+// 신규 재고 추가
 function addNewItem(){
+
     let location = document.getElementById('new_location').value;
     let name = document.getElementById('new_name').value;
     let exp = document.getElementById('new_exp').value;
@@ -122,12 +141,16 @@ function addNewItem(){
         return;
     }
 
+    // 🔥 숫자 안전 변환
+    let stock = parseFloat(qty);
+    if(isNaN(stock)) stock = 0;
+
     data.push({
         "로케이션": location,
         "상품명": name,
         "소비기한": exp,
         "로트번호": lot,
-        "재고수량": qty,
+        "재고수량": stock,
         "실수량": "",
         "차이수량": ""
     });
