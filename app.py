@@ -14,11 +14,11 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 FILE_EXPIRE_TIME = 60 * 60
 
 
+# 🔥 오래된 파일 자동 삭제
 def delete_old_files():
     now = time.time()
     for filename in os.listdir(UPLOAD_FOLDER):
         file_path = os.path.join(UPLOAD_FOLDER, filename)
-
         if os.path.isfile(file_path):
             if now - os.path.getmtime(file_path) > FILE_EXPIRE_TIME:
                 try:
@@ -33,20 +33,21 @@ def login_page():
     return render_template('login.html')
 
 
-# 🔐 로그인 처리 (권한 분리)
+# 🔐 로그인 처리 (역할 구분)
 @app.route('/login', methods=['POST'])
 def login():
     user_id = request.form.get('id')
     pw = request.form.get('pw')
+    role = request.form.get('role')
 
     # 관리자
-    if user_id == "김경민" and pw == "ourbox123":
+    if role == "admin" and user_id == "김경민" and pw == "ourbox123":
         session['login'] = True
         session['role'] = 'admin'
         return redirect('/admin')
 
     # 일반 사용자
-    elif user_id == "김경민" and pw == "ourbox":
+    elif role == "user" and user_id == "김경민" and pw == "ourbox":
         session['login'] = True
         session['role'] = 'user'
         return redirect('/')
@@ -69,10 +70,8 @@ def admin():
         return redirect('/login')
 
     files = []
-
     for filename in os.listdir(UPLOAD_FOLDER):
         file_path = os.path.join(UPLOAD_FOLDER, filename)
-
         if os.path.isfile(file_path):
             files.append({
                 "id": filename.replace(".xlsx",""),
