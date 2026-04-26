@@ -6,38 +6,43 @@
 
 <style>
 body { font-family:sans-serif; padding:20px; background:#f0f9f4; }
-.header { text-align:center; font-size:28px; font-weight:bold; color:#2e7d32; }
+.header { text-align:center; font-size:26px; font-weight:bold; color:#2e7d32; }
 
-.card { background:white; padding:25px; border-radius:15px; }
+.card { background:white; padding:20px; border-radius:12px; margin-top:10px; }
 
-p { font-size:20px; }
+input {
+    width:100%;
+    padding:16px;
+    font-size:20px;
+    margin-top:8px;
+}
 
 button {
     width:100%;
-    padding:18px;
-    font-size:20px;
-    margin-top:10px;
+    padding:16px;
+    font-size:18px;
+    margin-top:8px;
     background:#66bb6a;
     color:white;
     border:none;
 }
 
-input {
-    width:100%;
-    padding:18px;
-    font-size:22px;
-    margin-top:10px;
+.nav-buttons {
+    display:flex;
+    gap:6px;
 }
 
-.nav-buttons { display:flex; gap:8px; }
-.nav-buttons button { flex:1; }
+.nav-buttons button {
+    flex:1;
+}
 
-#loading {
+/* 🔥 신규 입력 UI */
+#newItemBox {
     display:none;
-    text-align:center;
-    font-size:22px;
-    padding:30px;
-    color:#2e7d32;
+    background:white;
+    padding:15px;
+    border-radius:12px;
+    margin-top:10px;
 }
 </style>
 </head>
@@ -46,66 +51,38 @@ input {
 
 <div class="header">ourbox 오산센터 재고조사</div>
 
-<div id="loading">⏳ 엑셀 처리중입니다...</div>
-
-<!-- 🔥 업로드 (경고창 제거 적용) -->
-<form id="uploadForm"
-      action="/upload"
-      method="post"
-      enctype="multipart/form-data"
-      onsubmit="disableWarning(); showLoading();">
-
-    <input type="file" name="file" accept=".xlsx,.xls,.csv">
-    <button type="submit">업로드 시작</button>
+<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <button type="submit">엑셀 업로드</button>
 </form>
 
 <div id="app"></div>
+
+<!-- 🔥 신규 재고 버튼 -->
+<button onclick="toggleNewItem()">신규 재고등록</button>
+
+<!-- 🔥 신규 입력 UI -->
+<div id="newItemBox">
+    <input id="new_location" placeholder="로케이션">
+    <input id="new_name" placeholder="상품명">
+    <input id="new_exp" placeholder="소비기한">
+    <input id="new_lot" placeholder="로트번호">
+    <input id="new_qty" placeholder="재고수량" inputmode="numeric">
+
+    <button onclick="addNewItem()">확인</button>
+    <button onclick="toggleNewItem()">취소</button>
+</div>
 
 <script>
 let data = {{ data|tojson }};
 let currentIndex = 0;
 
-// 🔥 페이지 로드
-window.onload = function() {
-
-    let saved = localStorage.getItem("inventoryData");
-
-    if(saved){
-        if(confirm("이전에 작업한 데이터가 있습니다.\n불러오시겠습니까?")){
-            data = JSON.parse(saved);
-        }else{
-            localStorage.removeItem("inventoryData");
-        }
-    }
-
-    if (data && data.length > 0) {
-
+window.onload = function(){
+    if(data.length > 0){
         document.getElementById('uploadForm').style.display = 'none';
-
-        initProductList();
         render();
-
-        // 🔥 작업 시작 시 경고 활성화
-        enableWarning();
     }
 };
-
-// 🔥 업로드 시 경고 제거
-function disableWarning(){
-    window.onbeforeunload = null;
-}
-
-// 🔥 작업 중 경고 활성화
-function enableWarning(){
-    window.onbeforeunload = function () {
-        return "작업 중입니다. 페이지를 나가시겠습니까?";
-    };
-}
-
-// 🔥 로딩 표시
-function showLoading(){
-    document.getElementById('loading').style.display = 'block';
-}
 </script>
 
 <script src="/static/script.js"></script>
