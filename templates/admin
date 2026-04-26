@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관리자 페이지</title>
+
+<style>
+body {
+    font-family:sans-serif;
+    padding:15px;
+    background:#f4fbf6;
+}
+
+.header {
+    font-size:24px;
+    font-weight:bold;
+    text-align:center;
+    color:#2e7d32;
+    margin-bottom:15px;
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.id {
+    font-size:14px;
+    color:#555;
+    word-break:break-all;
+}
+
+.time {
+    font-size:13px;
+    color:#888;
+}
+
+button {
+    padding:10px;
+    font-size:14px;
+    background:#ef5350;
+    color:white;
+    border:none;
+    border-radius:6px;
+}
+
+.download {
+    background:#66bb6a;
+}
+
+.top-bar {
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+@media (min-width:768px) {
+    body { max-width:600px; margin:auto; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">관리자 페이지</div>
+
+<div class="top-bar">
+    <button onclick="location.reload()">새로고침</button>
+    <button onclick="autoRefresh()">자동갱신</button>
+</div>
+
+{% for f in files %}
+<div class="card">
+    <div class="row">
+        <div>
+            <div class="id">{{f.id}}</div>
+            <div class="time">{{f.time}}</div>
+        </div>
+
+        <div>
+            <button class="download" onclick="download('{{f.id}}')">다운로드</button>
+            <button onclick="del('{{f.id}}')">삭제</button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function download(id){
+    window.open('/download/' + id, '_blank');
+}
+
+function del(id){
+    if(confirm("삭제하시겠습니까?")){
+        fetch('/delete/' + id, {method:'POST'})
+        .then(()=>location.reload());
+    }
+}
+
+function autoRefresh(){
+    setInterval(()=>location.reload(),5000);
+    alert("5초마다 자동 새로고침 시작");
+}
+</script>
+
+</body>
+</html>
