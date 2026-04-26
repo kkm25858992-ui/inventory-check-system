@@ -26,34 +26,48 @@ def index():
         return redirect('/login')
     return render_template('index.html', data=[])
 
-# 🔥 업로드 (속도 최적화)
+# 🔥 업로드 (컬럼 유연 + 안정 버전)
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
         file = request.files['file']
         filename = secure_filename(file.filename.lower())
 
+        # 🔥 전체 읽기 (컬럼 유연 처리)
         if filename.endswith('.csv'):
-            df = pd.read_csv(file, usecols=["로케이션","상품명","소비기한","로트번호","재고수량"])
+            df = pd.read_csv(file)
         else:
-            df = pd.read_excel(
-                file,
-                engine='openpyxl',
-                usecols=["로케이션","상품명","소비기한","로트번호","재고수량"]
-            )
+            df = pd.read_excel(file, engine='openpyxl')
 
-        if "소비기한" in df.columns:
+        # 🔥 필수 컬럼 체크
+        required_cols = ["로케이션","상품명","재고수량"]
+        for col in required_cols:
+            if col not in df.columns:
+                return f"❌ {col} 컬럼이 없습니다."
+
+        # 🔥 선택 컬럼 처리
+        if "소비기한" not in df.columns:
+            df["소비기한"] = ""
+        else:
+            # 값이 있을 경우만 날짜 포맷 유지
             df["소비기한"] = df["소비기한"].astype(str).str[:10]
 
+        if "로트번호" not in df.columns:
+            df["로트번호"] = ""
+
+        # 🔥 로케이션 정렬
         if "로케이션" in df.columns:
             df = df.sort_values(by="로케이션")
+
+        # 🔥 필요한 컬럼만 유지
+        df = df[["로케이션","상품명","소비기한","로트번호","재고수량"]]
 
         data = df.to_dict(orient='records')
 
         return render_template('index.html', data=data)
 
     except Exception as e:
-        return str(e)
+        return f"업로드 오류: {str(e)}"
 
 @app.route('/save', methods=['POST'])
 def save():
