@@ -1,8 +1,9 @@
-// 🔥 렌더링
 function render(){
     if(data.length === 0) return;
 
-    // 🔥 현재 위치 저장 (이어하기 핵심)
+    // 🔥 항상 표시 보장
+    document.getElementById('newItemBtn').style.display = 'block';
+
     localStorage.setItem("currentIndex", currentIndex);
 
     let item = data[currentIndex];
@@ -38,12 +39,8 @@ function render(){
     updateDiff();
 }
 
-// 🔥 차이 계산 + 자동저장
 function updateDiff(){
-    let input = document.getElementById('real_qty');
-    if(!input) return;
-
-    let real = Number(input.value || 0);
+    let real = Number(document.getElementById('real_qty').value || 0);
     let stock = Number(data[currentIndex]["재고수량"]);
 
     let diff = real - stock;
@@ -53,19 +50,16 @@ function updateDiff(){
     data[currentIndex]["실수량"] = real;
     data[currentIndex]["차이수량"] = diff;
 
-    // 🔥 자동 저장
     localStorage.setItem("inventoryData", JSON.stringify(data));
 }
 
-// 🔥 Enter → 다음
 function enterNext(e){
     if(e.key === "Enter"){
-        e.preventDefault(); // 🔥 키패드 유지
+        e.preventDefault();
         next();
     }
 }
 
-// 🔥 다음
 function next(){
     if(currentIndex < data.length - 1){
         currentIndex++;
@@ -73,7 +67,6 @@ function next(){
     }
 }
 
-// 🔥 이전
 function prev(){
     if(currentIndex > 0){
         currentIndex--;
@@ -81,10 +74,8 @@ function prev(){
     }
 }
 
-// 🔥 동일 처리
 function same(){
     let stock = data[currentIndex]["재고수량"];
-
     data[currentIndex]["실수량"] = stock;
     data[currentIndex]["차이수량"] = 0;
 
@@ -93,7 +84,6 @@ function same(){
     next();
 }
 
-// 🔥 다운로드
 function download(){
     fetch('/save',{
         method:'POST',
@@ -106,7 +96,6 @@ function download(){
     });
 }
 
-// 🔥 공유 (다운로드 링크 복사)
 function share(){
     fetch('/save',{
         method:'POST',
@@ -121,9 +110,7 @@ function share(){
     });
 }
 
-// 🔥 신규 재고 추가
 function addNewItem(){
-
     let location = document.getElementById('new_location').value;
     let name = document.getElementById('new_name').value;
     let exp = document.getElementById('new_exp').value;
@@ -145,10 +132,8 @@ function addNewItem(){
         "차이수량": ""
     });
 
-    // 🔥 자동 저장
     localStorage.setItem("inventoryData", JSON.stringify(data));
 
-    // 🔥 입력창 닫기 + 초기화
     document.getElementById('newItemBox').style.display = 'none';
 
     document.getElementById('new_location').value = "";
@@ -157,7 +142,6 @@ function addNewItem(){
     document.getElementById('new_lot').value = "";
     document.getElementById('new_qty').value = "";
 
-    // 🔥 상품 리스트 갱신 (자동완성 반영)
     if(!productList.includes(name)){
         productList.push(name);
     }
