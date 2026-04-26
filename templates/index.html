@@ -36,13 +36,29 @@ button {
     flex:1;
 }
 
-/* 🔥 신규 입력 UI */
 #newItemBox {
     display:none;
     background:white;
     padding:15px;
     border-radius:12px;
     margin-top:10px;
+}
+
+/* 🔥 자동완성 */
+.autocomplete-items {
+    border:1px solid #ddd;
+    max-height:150px;
+    overflow-y:auto;
+    background:white;
+}
+
+.autocomplete-items div {
+    padding:10px;
+    cursor:pointer;
+}
+
+.autocomplete-items div:hover {
+    background:#e0f2f1;
 }
 </style>
 </head>
@@ -58,13 +74,13 @@ button {
 
 <div id="app"></div>
 
-<!-- 🔥 신규 재고 버튼 -->
 <button onclick="toggleNewItem()">신규 재고등록</button>
 
-<!-- 🔥 신규 입력 UI -->
 <div id="newItemBox">
     <input id="new_location" placeholder="로케이션">
     <input id="new_name" placeholder="상품명">
+    <div id="autocomplete-box"></div>
+
     <input id="new_exp" placeholder="소비기한">
     <input id="new_lot" placeholder="로트번호">
     <input id="new_qty" placeholder="재고수량" inputmode="numeric">
@@ -76,13 +92,59 @@ button {
 <script>
 let data = {{ data|tojson }};
 let currentIndex = 0;
+let productList = [];
 
+// 🔥 초기화
 window.onload = function(){
     if(data.length > 0){
         document.getElementById('uploadForm').style.display = 'none';
+        initProductList();
         render();
     }
 };
+
+// 🔥 상품 리스트 생성
+function initProductList(){
+    productList = [...new Set(data.map(d => d["상품명"]))];
+}
+
+// 🔥 자동완성
+function autocomplete(){
+    const input = document.getElementById("new_name");
+    const box = document.getElementById("autocomplete-box");
+
+    input.addEventListener("input", function(){
+        box.innerHTML = "";
+
+        let val = this.value.toLowerCase();
+
+        productList.forEach(item => {
+            if(item.toLowerCase().includes(val)){
+                let div = document.createElement("div");
+                div.innerText = item;
+
+                div.onclick = function(){
+                    input.value = item;
+                    box.innerHTML = "";
+                };
+
+                box.appendChild(div);
+            }
+        });
+    });
+}
+
+// 🔥 신규 UI
+function toggleNewItem(){
+    const box = document.getElementById('newItemBox');
+
+    if(box.style.display === 'none'){
+        box.style.display = 'block';
+        autocomplete(); // 🔥 자동완성 연결
+    }else{
+        box.style.display = 'none';
+    }
+}
 </script>
 
 <script src="/static/script.js"></script>
