@@ -48,7 +48,13 @@ input {
 
 <div id="loading">⏳ 엑셀 처리중입니다...</div>
 
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" onsubmit="showLoading()">
+<!-- 🔥 업로드 (경고창 제거 적용) -->
+<form id="uploadForm"
+      action="/upload"
+      method="post"
+      enctype="multipart/form-data"
+      onsubmit="disableWarning(); showLoading();">
+
     <input type="file" name="file" accept=".xlsx,.xls,.csv">
     <button type="submit">업로드 시작</button>
 </form>
@@ -59,6 +65,7 @@ input {
 let data = {{ data|tojson }};
 let currentIndex = 0;
 
+// 🔥 페이지 로드
 window.onload = function() {
 
     let saved = localStorage.getItem("inventoryData");
@@ -72,19 +79,33 @@ window.onload = function() {
     }
 
     if (data && data.length > 0) {
+
         document.getElementById('uploadForm').style.display = 'none';
+
         initProductList();
         render();
+
+        // 🔥 작업 시작 시 경고 활성화
+        enableWarning();
     }
 };
 
+// 🔥 업로드 시 경고 제거
+function disableWarning(){
+    window.onbeforeunload = null;
+}
+
+// 🔥 작업 중 경고 활성화
+function enableWarning(){
+    window.onbeforeunload = function () {
+        return "작업 중입니다. 페이지를 나가시겠습니까?";
+    };
+}
+
+// 🔥 로딩 표시
 function showLoading(){
     document.getElementById('loading').style.display = 'block';
 }
-
-window.onbeforeunload = function () {
-    return "작업 중입니다. 페이지를 나가시겠습니까?";
-};
 </script>
 
 <script src="/static/script.js"></script>
