@@ -4,6 +4,17 @@ function initProductList() {
     productList = [...new Set(data.map(x => x["상품명"]))];
 }
 
+function autoSave(){
+    localStorage.setItem("inventoryData", JSON.stringify(data));
+}
+
+// 🔥 5초 자동 저장
+setInterval(()=>{
+    if(data && data.length > 0){
+        autoSave();
+    }
+},5000);
+
 function render() {
     const item = data[currentIndex];
 
@@ -34,8 +45,35 @@ function render() {
 
         <button onclick="addNew()">신규 재고등록</button>
         <div id="newItem"></div>
+
     </div>
     `;
+}
+
+function updateQty() {
+    const val = Number(document.getElementById('realQty').value || 0);
+    const stock = Number(data[currentIndex]["재고수량"] || 0);
+
+    data[currentIndex]["실수량"] = val;
+    data[currentIndex]["차이수량"] = val - stock;
+
+    document.getElementById('diff').innerText = val - stock;
+
+    autoSave();
+}
+
+function enterMove(e){
+    if(e.key==="Enter"){ next(); }
+}
+
+function next(){ if(currentIndex < data.length-1){currentIndex++; render();}}
+function prev(){ if(currentIndex > 0){currentIndex--; render();}}
+
+function same(){
+    let stock = data[currentIndex]["재고수량"];
+    data[currentIndex]["실수량"]=stock;
+    data[currentIndex]["차이수량"]=0;
+    next();
 }
 
 function addNew() {
@@ -58,9 +96,7 @@ function searchProduct() {
     ).slice(0,5);
 
     document.getElementById('autocomplete').innerHTML =
-        result.map(p =>
-            `<div onclick="selectProduct('${p}')">${p}</div>`
-        ).join('');
+        result.map(p => `<div onclick="selectProduct('${p}')">${p}</div>`).join('');
 }
 
 function selectProduct(name) {
@@ -81,43 +117,31 @@ function saveNew() {
 
     data.push(newItem);
     productList.push(newItem["상품명"]);
+
+    autoSave();
+
     alert("추가 완료");
 }
 
-function updateQty() {
-    const val = Number(document.getElementById('realQty').value || 0);
-    const stock = Number(data[currentIndex]["재고수량"] || 0);
-
-    data[currentIndex]["실수량"] = val;
-    data[currentIndex]["차이수량"] = val - stock;
-
-    document.getElementById('diff').innerText = val - stock;
-}
-
-function enterMove(e){
-    if(e.key==="Enter"){
-        next();
-    }
-}
-
-function next(){ if(currentIndex < data.length-1){currentIndex++; render();}}
-function prev(){ if(currentIndex > 0){currentIndex--; render();}}
-
-function same(){
-    let stock = data[currentIndex]["재고수량"];
-    data[currentIndex]["실수량"]=stock;
-    data[currentIndex]["차이수량"]=0;
-    next();
-}
-
 function download(){
-    fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    fetch('/save',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)
+    })
     .then(res=>res.json())
-    .then(res=>location.href=res.download_url);
+    .then(res=>{
+        localStorage.removeItem("inventoryData");
+        location.href=res.download_url;
+    });
 }
 
 function share(){
-    fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    fetch('/save',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)
+    })
     .then(res=>res.json())
     .then(res=>{
         navigator.clipboard.writeText(location.origin+res.download_url);
