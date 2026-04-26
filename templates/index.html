@@ -6,7 +6,13 @@
 
 <style>
 body { font-family:sans-serif; padding:20px; background:#f0f9f4; }
-.header { text-align:center; font-size:28px; font-weight:bold; color:#2e7d32; }
+
+.header {
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#2e7d32;
+}
 
 .card {
     background:white;
@@ -38,6 +44,15 @@ input {
     gap:8px;
 }
 .nav-buttons button { flex:1; }
+
+/* 🔥 로딩 UI */
+#loading {
+    display:none;
+    text-align:center;
+    font-size:22px;
+    padding:30px;
+    color:#2e7d32;
+}
 </style>
 </head>
 
@@ -45,7 +60,15 @@ input {
 
 <div class="header">ourbox 오산센터 재고조사</div>
 
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+<!-- 🔥 로딩 -->
+<div id="loading">⏳ 엑셀 처리중입니다...</div>
+
+<form id="uploadForm"
+      action="/upload"
+      method="post"
+      enctype="multipart/form-data"
+      onsubmit="showLoading()">
+
     <input type="file" name="file" accept=".xlsx,.xls,.csv">
     <button type="submit">업로드 시작</button>
 </form>
@@ -68,10 +91,15 @@ window.onload = function() {
             "차이수량": ""
         }));
 
-        initProductList(); // 🔥 자동완성 준비
-        render();          // 🔥 화면 출력
+        initProductList();
+        render();
     }
 };
+
+/* 🔥 로딩 표시 */
+function showLoading(){
+    document.getElementById('loading').style.display = 'block';
+}
 </script>
 
 <script src="/static/script.js"></script>
