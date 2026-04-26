@@ -36,6 +36,7 @@ button {
     flex:1;
 }
 
+/* 신규 입력 UI */
 #newItemBox {
     display:none;
     background:white;
@@ -51,12 +52,10 @@ button {
     overflow-y:auto;
     background:white;
 }
-
 .autocomplete-items div {
     padding:10px;
     cursor:pointer;
 }
-
 .autocomplete-items div:hover {
     background:#e0f2f1;
 }
@@ -74,7 +73,10 @@ button {
 
 <div id="app"></div>
 
-<button onclick="toggleNewItem()">신규 재고등록</button>
+<!-- 🔥 기본 숨김 -->
+<button id="newItemBtn" onclick="toggleNewItem()" style="display:none;">
+    신규 재고등록
+</button>
 
 <div id="newItemBox">
     <input id="new_location" placeholder="로케이션">
@@ -94,7 +96,7 @@ let data = {{ data|tojson }};
 let currentIndex = 0;
 let productList = [];
 
-// 🔥 이어하기 + 초기화
+// 🔥 이어하기 + 버튼 제어
 window.onload = function(){
 
     let saved = localStorage.getItem("inventoryData");
@@ -115,17 +117,21 @@ window.onload = function(){
 
     if(data.length > 0){
         document.getElementById('uploadForm').style.display = 'none';
+
+        // 🔥 여기 핵심
+        document.getElementById('newItemBtn').style.display = 'block';
+
         initProductList();
         render();
     }
 };
 
-// 🔥 상품 리스트
+// 상품 리스트
 function initProductList(){
     productList = [...new Set(data.map(d => d["상품명"]))];
 }
 
-// 🔥 자동완성
+// 자동완성
 function autocomplete(){
     const input = document.getElementById("new_name");
     const box = document.getElementById("autocomplete-box");
@@ -151,7 +157,7 @@ function autocomplete(){
     });
 }
 
-// 🔥 신규 UI 토글
+// 신규 UI
 function toggleNewItem(){
     const box = document.getElementById('newItemBox');
 
