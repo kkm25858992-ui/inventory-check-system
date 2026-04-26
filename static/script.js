@@ -1,4 +1,3 @@
-// 🔥 현재 데이터 렌더링
 function render(){
     if(data.length === 0) return;
 
@@ -12,7 +11,8 @@ function render(){
             <p><b>로트번호:</b> ${item["로트번호"] || ""}</p>
             <p><b>재고수량:</b> ${item["재고수량"]}</p>
 
-            <input id="real_qty" placeholder="실수량"
+            <input id="real_qty"
+                placeholder="실수량"
                 value="${item["실수량"] || ""}"
                 inputmode="numeric"
                 oninput="updateDiff()"
@@ -34,12 +34,8 @@ function render(){
     updateDiff();
 }
 
-// 🔥 차이 계산
 function updateDiff(){
-    let input = document.getElementById('real_qty');
-    if(!input) return;
-
-    let real = Number(input.value || 0);
+    let real = Number(document.getElementById('real_qty').value || 0);
     let stock = Number(data[currentIndex]["재고수량"]);
 
     let diff = real - stock;
@@ -52,14 +48,12 @@ function updateDiff(){
     localStorage.setItem("inventoryData", JSON.stringify(data));
 }
 
-// 🔥 Enter → 다음
 function enterNext(e){
     if(e.key === "Enter"){
         next();
     }
 }
 
-// 🔥 이동
 function next(){
     if(currentIndex < data.length - 1){
         currentIndex++;
@@ -82,7 +76,6 @@ function same(){
     next();
 }
 
-// 🔥 다운로드
 function download(){
     fetch('/save',{
         method:'POST',
@@ -95,7 +88,6 @@ function download(){
     });
 }
 
-// 🔥 공유
 function share(){
     fetch('/save',{
         method:'POST',
@@ -110,13 +102,7 @@ function share(){
     });
 }
 
-// 🔥 신규 UI 토글
-function toggleNewItem(){
-    const box = document.getElementById('newItemBox');
-    box.style.display = (box.style.display === 'none') ? 'block' : 'none';
-}
-
-// 🔥 신규 추가
+// 🔥 신규 재고 추가
 function addNewItem(){
     let location = document.getElementById('new_location').value;
     let name = document.getElementById('new_name').value;
@@ -141,7 +127,6 @@ function addNewItem(){
 
     localStorage.setItem("inventoryData", JSON.stringify(data));
 
-    // 🔥 UI 닫기 + 초기화
     document.getElementById('newItemBox').style.display = 'none';
 
     document.getElementById('new_location').value = "";
