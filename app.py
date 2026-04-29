@@ -14,7 +14,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 FILE_EXPIRE_TIME = 60 * 60
 
 
-# 🔥 오래된 파일 자동 삭제
 def delete_old_files():
     now = time.time()
     for filename in os.listdir(UPLOAD_FOLDER):
@@ -27,26 +26,22 @@ def delete_old_files():
                     pass
 
 
-# 🔐 로그인 페이지
 @app.route('/login')
 def login_page():
     return render_template('login.html')
 
 
-# 🔐 로그인 처리 (역할 구분)
 @app.route('/login', methods=['POST'])
 def login():
     user_id = request.form.get('id')
     pw = request.form.get('pw')
     role = request.form.get('role')
 
-    # 관리자
     if role == "admin" and user_id == "김경민" and pw == "ourbox123":
         session['login'] = True
         session['role'] = 'admin'
         return redirect('/admin')
 
-    # 일반 사용자
     elif role == "user" and user_id == "김경민" and pw == "ourbox":
         session['login'] = True
         session['role'] = 'user'
@@ -55,7 +50,6 @@ def login():
     return "로그인 실패"
 
 
-# 🏠 사용자 페이지
 @app.route('/')
 def index():
     if not session.get('login') or session.get('role') != 'user':
@@ -63,7 +57,6 @@ def index():
     return render_template('index.html', data=[])
 
 
-# 📊 관리자 페이지
 @app.route('/admin')
 def admin():
     if not session.get('login') or session.get('role') != 'admin':
@@ -84,7 +77,6 @@ def admin():
     return render_template('admin.html', files=files)
 
 
-# 📥 업로드
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
@@ -109,6 +101,14 @@ def upload():
         if "로트번호" not in df.columns:
             df["로트번호"] = ""
 
+        # 🔥 핵심: 재고수량 숫자 정리
+        df["재고수량"] = (
+            df["재고수량"]
+            .astype(str)
+            .str.replace(",", "")
+        )
+        df["재고수량"] = pd.to_numeric(df["재고수량"], errors='coerce').fillna(0)
+
         df = df.sort_values(by="로케이션")
         df = df[["로케이션","상품명","소비기한","로트번호","재고수량"]]
 
@@ -118,7 +118,6 @@ def upload():
         return str(e)
 
 
-# 💾 저장
 @app.route('/save', methods=['POST'])
 def save():
     delete_old_files()
@@ -133,7 +132,6 @@ def save():
     return jsonify({"download_url": f"/download/{file_id}"})
 
 
-# 📥 다운로드 (로그인 없이 가능)
 @app.route('/download/<file_id>')
 def download(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
@@ -144,7 +142,6 @@ def download(file_id):
     return send_file(path, download_name="inventory.xlsx", as_attachment=True)
 
 
-# ❌ 삭제
 @app.route('/delete/<file_id>', methods=['POST'])
 def delete_file(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
