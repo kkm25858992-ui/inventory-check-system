@@ -6,9 +6,20 @@
 
 <style>
 body { font-family:sans-serif; padding:20px; background:#f0f9f4; }
-.header { text-align:center; font-size:26px; font-weight:bold; color:#2e7d32; }
 
-.card { background:white; padding:20px; border-radius:12px; margin-top:10px; }
+.header {
+    text-align:center;
+    font-size:26px;
+    font-weight:bold;
+    color:#2e7d32;
+}
+
+.card {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-top:10px;
+}
 
 input {
     width:100%;
@@ -31,10 +42,7 @@ button {
     display:flex;
     gap:6px;
 }
-
-.nav-buttons button {
-    flex:1;
-}
+.nav-buttons button { flex:1; }
 
 /* 신규 입력 UI */
 #newItemBox {
@@ -66,23 +74,25 @@ button {
 
 <div class="header">ourbox 오산센터 재고조사</div>
 
+<!-- 업로드 -->
 <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
     <input type="file" name="file">
     <button type="submit">엑셀 업로드</button>
 </form>
 
+<!-- 메인 -->
 <div id="app"></div>
 
-<!-- 🔥 기본 숨김 -->
+<!-- 신규 재고 버튼 -->
 <button id="newItemBtn" onclick="toggleNewItem()" style="display:none;">
     신규 재고등록
 </button>
 
+<!-- 신규 입력 -->
 <div id="newItemBox">
     <input id="new_location" placeholder="로케이션">
     <input id="new_name" placeholder="상품명">
-    <div id="autocomplete-box"></div>
-
+    <div id="autocomplete-box" class="autocomplete-items"></div>
     <input id="new_exp" placeholder="소비기한">
     <input id="new_lot" placeholder="로트번호">
     <input id="new_qty" placeholder="재고수량" inputmode="numeric">
@@ -96,9 +106,10 @@ let data = {{ data|tojson }};
 let currentIndex = 0;
 let productList = [];
 
-// 🔥 이어하기 + 버튼 제어
+/* =========================
+   이어하기 기능
+========================= */
 window.onload = function(){
-
     let saved = localStorage.getItem("inventoryData");
 
     if(saved){
@@ -117,8 +128,6 @@ window.onload = function(){
 
     if(data.length > 0){
         document.getElementById('uploadForm').style.display = 'none';
-
-        // 🔥 여기 핵심
         document.getElementById('newItemBtn').style.display = 'block';
 
         initProductList();
@@ -126,19 +135,22 @@ window.onload = function(){
     }
 };
 
-// 상품 리스트
+/* =========================
+   상품 리스트 생성
+========================= */
 function initProductList(){
     productList = [...new Set(data.map(d => d["상품명"]))];
 }
 
-// 자동완성
+/* =========================
+   자동완성
+========================= */
 function autocomplete(){
     const input = document.getElementById("new_name");
     const box = document.getElementById("autocomplete-box");
 
     input.addEventListener("input", function(){
         box.innerHTML = "";
-
         let val = this.value.toLowerCase();
 
         productList.forEach(item => {
@@ -157,7 +169,9 @@ function autocomplete(){
     });
 }
 
-// 신규 UI
+/* =========================
+   신규 입력 UI 토글
+========================= */
 function toggleNewItem(){
     const box = document.getElementById('newItemBox');
 
@@ -170,6 +184,7 @@ function toggleNewItem(){
 }
 </script>
 
+<!-- 외부 JS -->
 <script src="/static/script.js"></script>
 
 </body>
