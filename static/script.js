@@ -101,6 +101,7 @@ function same(){
     next();
 }
 
+/* ✅ 다운로드 (완전 수정) */
 function download(){
     fetch('/save',{
         method:'POST',
@@ -109,11 +110,11 @@ function download(){
     })
     .then(res=>res.json())
     .then(res=>{
-        window.location = res.download_url;
+        window.location = "/download/" + res.file_id;
     });
 }
 
-/* 🔥 여기만 교체된 부분 */
+/* ✅ 공유 (완전 수정) */
 function share(){
     fetch('/save',{
         method:'POST',
@@ -122,9 +123,8 @@ function share(){
     })
     .then(res=>res.json())
     .then(res=>{
-        const url = location.origin + "/share/" + res.download_url.split('/').pop();
+        const url = location.origin + "/share/" + res.file_id;
 
-        // 클립보드 + fallback
         if(navigator.clipboard){
             navigator.clipboard.writeText(url)
                 .then(()=> alert("공유 링크 복사됨"))
@@ -135,7 +135,6 @@ function share(){
     });
 }
 
-// 구형 브라우저 대응
 function fallbackCopy(text){
     const textarea = document.createElement("textarea");
     textarea.value = text;
