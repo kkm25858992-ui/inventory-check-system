@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "secret_key_123"
 
+# 🔥 계정 관리 (여기만 수정하면 계정 추가됨)
 admins = {
     "김경민": "ourbox123",
 }
@@ -27,12 +28,13 @@ FILE_EXPIRE_TIME = 60 * 60
 def delete_old_files():
     now = time.time()
     for filename in os.listdir(UPLOAD_FOLDER):
-        path = os.path.join(UPLOAD_FOLDER, filename)
-        if os.path.isfile(path) and now - os.path.getmtime(path) > FILE_EXPIRE_TIME:
-            try:
-                os.remove(path)
-            except:
-                pass
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.isfile(file_path):
+            if now - os.path.getmtime(file_path) > FILE_EXPIRE_TIME:
+                try:
+                    os.remove(file_path)
+                except:
+                    pass
 
 
 @app.route('/login')
@@ -46,12 +48,14 @@ def login():
     pw = request.form.get('pw')
     role = request.form.get('role')
 
+    # 🔥 관리자 로그인
     if role == "admin":
         if user_id in admins and admins[user_id] == pw:
             session['login'] = True
             session['role'] = 'admin'
             return redirect('/admin')
 
+    # 🔥 사용자 로그인
     elif role == "user":
         if user_id in users and users[user_id] == pw:
             session['login'] = True
@@ -68,65 +72,77 @@ def index():
     return render_template('index.html', data=[])
 
 
+@app.route('/admin')
+def admin():
+    if not session.get('login') or session.get('role') != 'admin':
+        return redirect('/login')
+
+    files = []
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.isfile(file_path):
+            files.append({
+                "id": filename.replace(".xlsx", ""),
+                "time": time.strftime('%Y-%m-%d %H:%M:%S',
+                                      time.localtime(os.path.getmtime(file_path)))
+            })
+
+    files = sorted(files, key=lambda x: x["time"], reverse=True)
+
+    return render_template('admin.html', files=files)
+
+
 @app.route('/upload', methods=['POST'])
 def upload():
-    file = request.files['file']
-    filename = secure_filename(file.filename.lower())
+    try:
+        file = request.files['file']
+        filename = secure_filename(file.filename.lower())
 
-    if filename.endswith('.csv'):
-        df = pd.read_csv(file)
-    else:
-        df = pd.read_excel(file, engine='openpyxl')
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file, engine='openpyxl')
 
-    required = ["로케이션", "상품명", "바코드", "재고수량"]
-    for col in required:
-        if col not in df.columns:
-            return f"{col} 없음"
+        required_cols = ["로케이션", "상품명", "재고수량"]
+        for col in required_cols:
+            if col not in df.columns:
+                return f"{col} 없음"
 
-    df["로케이션"] = df["로케이션"].astype(str).str.strip()
-    df["상품명"] = df["상품명"].astype(str).str.strip()
-    df["바코드"] = df["바코드"].astype(str).str.strip()
+        if "소비기한" not in df.columns:
+            df["소비기한"] = ""
+        else:
+            df["소비기한"] = df["소비기한"].astype(str).str[:10]
 
-    if "소비기한" not in df.columns:
-        df["소비기한"] = ""
-    else:
-        df["소비기한"] = df["소비기한"].astype(str).str[:10]
+        if "로트번호" not in df.columns:
+            df["로트번호"] = ""
 
-    if "로트번호" not in df.columns:
-        df["로트번호"] = ""
+        # 🔥 재고수량 숫자 처리
+        df["재고수량"] = (
+            df["재고수량"]
+            .astype(str)
+            .str.replace(",", "")
+        )
+        df["재고수량"] = pd.to_numeric(df["재고수량"], errors='coerce').fillna(0)
 
-    df["재고수량"] = (
-        df["재고수량"]
-        .astype(str)
-        .str.replace(",", "")
-        .str.extract(r'(\d+)')[0]
-    )
+        df = df.sort_values(by="로케이션")
+        df = df[["로케이션", "상품명", "소비기한", "로트번호", "재고수량"]]
 
-    df["재고수량"] = pd.to_numeric(df["재고수량"], errors='coerce').fillna(0)
+        return render_template('index.html', data=df.to_dict(orient='records'))
 
-    df = df[["로케이션","상품명","바코드","소비기한","로트번호","재고수량"]]
-
-    return render_template('index.html', data=df.to_dict(orient='records'))
+    except Exception as e:
+        return str(e)
 
 
-# 🔥 핵심: Sheet1 + Sheet2 저장
 @app.route('/save', methods=['POST'])
 def save():
     delete_old_files()
 
-    payload = request.json
-
-    main_data = payload.get("main", [])
-    new_data = payload.get("new", [])
+    df = pd.DataFrame(request.json)
 
     file_id = str(uuid.uuid4())
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
 
-    with pd.ExcelWriter(path, engine='openpyxl') as writer:
-        pd.DataFrame(main_data).to_excel(writer, index=False, sheet_name='Sheet1')
-
-        if new_data:
-            pd.DataFrame(new_data).to_excel(writer, index=False, sheet_name='Sheet2')
+    df.to_excel(path, index=False)
 
     return jsonify({"download_url": f"/download/{file_id}"})
 
@@ -134,9 +150,22 @@ def save():
 @app.route('/download/<file_id>')
 def download(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
     if not os.path.exists(path):
         return "파일 없음"
+
     return send_file(path, download_name="inventory.xlsx", as_attachment=True)
+
+
+@app.route('/delete/<file_id>', methods=['POST'])
+def delete_file(file_id):
+    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
+    if os.path.exists(path):
+        os.remove(path)
+        return "삭제 완료"
+
+    return "파일 없음"
 
 
 if __name__ == '__main__':
