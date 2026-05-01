@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "secret_key_123"
 
-# 계정
+# 🔥 계정 관리
 admins = {
     "김경민": "ourbox123",
 }
@@ -25,7 +25,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 FILE_EXPIRE_TIME = 60 * 60
 
 
-# 오래된 파일 삭제
 def delete_old_files():
     now = time.time()
     for filename in os.listdir(UPLOAD_FOLDER):
@@ -38,7 +37,6 @@ def delete_old_files():
                     pass
 
 
-# 로그인
 @app.route('/login')
 def login_page():
     return render_template('login.html')
@@ -50,12 +48,14 @@ def login():
     pw = request.form.get('pw')
     role = request.form.get('role')
 
+    # 관리자
     if role == "admin":
         if user_id in admins and admins[user_id] == pw:
             session['login'] = True
             session['role'] = 'admin'
             return redirect('/admin')
 
+    # 사용자
     elif role == "user":
         if user_id in users and users[user_id] == pw:
             session['login'] = True
@@ -65,7 +65,6 @@ def login():
     return "로그인 실패"
 
 
-# 사용자 페이지
 @app.route('/')
 def index():
     if not session.get('login') or session.get('role') != 'user':
@@ -73,7 +72,6 @@ def index():
     return render_template('index.html', data=[])
 
 
-# 관리자
 @app.route('/admin')
 def admin():
     if not session.get('login') or session.get('role') != 'admin':
@@ -94,7 +92,6 @@ def admin():
     return render_template('admin.html', files=files)
 
 
-# 업로드
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
@@ -119,7 +116,11 @@ def upload():
         if "로트번호" not in df.columns:
             df["로트번호"] = ""
 
-        df["재고수량"] = df["재고수량"].astype(str).str.replace(",", "")
+        df["재고수량"] = (
+            df["재고수량"]
+            .astype(str)
+            .str.replace(",", "")
+        )
         df["재고수량"] = pd.to_numeric(df["재고수량"], errors='coerce').fillna(0)
 
         df = df.sort_values(by="로케이션")
@@ -131,7 +132,7 @@ def upload():
         return str(e)
 
 
-# 저장 (시트1 / 시트2 분리)
+# 🔥🔥🔥 핵심 수정 부분
 @app.route('/save', methods=['POST'])
 def save():
     delete_old_files()
@@ -141,6 +142,7 @@ def save():
     file_id = str(uuid.uuid4())
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
 
+    # 🔥 신규 데이터 분리
     if "신규" in df.columns:
         df_new = df[df["신규"] == True]
         df_old = df[df["신규"] != True]
@@ -148,27 +150,16 @@ def save():
         df_old = df
         df_new = pd.DataFrame()
 
+    # 🔥 엑셀 시트 분리 저장
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
         df_old.to_excel(writer, index=False, sheet_name="시트1")
 
         if not df_new.empty:
             df_new.to_excel(writer, index=False, sheet_name="시트2")
 
-    return jsonify({"file_id": file_id})
+    return jsonify({"download_url": f"/download/{file_id}"})
 
 
-# 🔥 공유 다운로드 (로그인 없이)
-@app.route('/share/<file_id>')
-def share_download(file_id):
-    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
-
-    if not os.path.exists(path):
-        return "파일 없음"
-
-    return send_file(path, download_name="inventory.xlsx", as_attachment=True)
-
-
-# 일반 다운로드 (관리자용)
 @app.route('/download/<file_id>')
 def download(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
@@ -179,7 +170,6 @@ def download(file_id):
     return send_file(path, download_name="inventory.xlsx", as_attachment=True)
 
 
-# 삭제
 @app.route('/delete/<file_id>', methods=['POST'])
 def delete_file(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
