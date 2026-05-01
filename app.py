@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "secret_key_123"
 
-# 🔥 계정 관리 (여기만 수정하면 계정 추가됨)
+# 🔥 계정 관리
 admins = {
     "김경민": "ourbox123",
 }
@@ -48,14 +48,14 @@ def login():
     pw = request.form.get('pw')
     role = request.form.get('role')
 
-    # 🔥 관리자 로그인
+    # 관리자
     if role == "admin":
         if user_id in admins and admins[user_id] == pw:
             session['login'] = True
             session['role'] = 'admin'
             return redirect('/admin')
 
-    # 🔥 사용자 로그인
+    # 사용자
     elif role == "user":
         if user_id in users and users[user_id] == pw:
             session['login'] = True
@@ -116,7 +116,6 @@ def upload():
         if "로트번호" not in df.columns:
             df["로트번호"] = ""
 
-        # 🔥 재고수량 숫자 처리
         df["재고수량"] = (
             df["재고수량"]
             .astype(str)
@@ -133,6 +132,7 @@ def upload():
         return str(e)
 
 
+# 🔥🔥🔥 핵심 수정 부분
 @app.route('/save', methods=['POST'])
 def save():
     delete_old_files()
@@ -142,7 +142,20 @@ def save():
     file_id = str(uuid.uuid4())
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
 
-    df.to_excel(path, index=False)
+    # 🔥 신규 데이터 분리
+    if "신규" in df.columns:
+        df_new = df[df["신규"] == True]
+        df_old = df[df["신규"] != True]
+    else:
+        df_old = df
+        df_new = pd.DataFrame()
+
+    # 🔥 엑셀 시트 분리 저장
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        df_old.to_excel(writer, index=False, sheet_name="시트1")
+
+        if not df_new.empty:
+            df_new.to_excel(writer, index=False, sheet_name="시트2")
 
     return jsonify({"download_url": f"/download/{file_id}"})
 
