@@ -36,7 +36,6 @@ button {
     flex:1;
 }
 
-/* 신규 입력 UI */
 #newItemBox {
     display:none;
     background:white;
@@ -45,7 +44,6 @@ button {
     margin-top:10px;
 }
 
-/* 자동완성 */
 .autocomplete-items {
     border:1px solid #ddd;
     max-height:150px;
@@ -73,7 +71,6 @@ button {
 
 <div id="app"></div>
 
-<!-- 🔥 기본 숨김 -->
 <button id="newItemBtn" onclick="toggleNewItem()" style="display:none;">
     신규 재고등록
 </button>
@@ -92,16 +89,20 @@ button {
 </div>
 
 <script>
-let data = {{ data|tojson }};
+let data = {{ data|tojson | safe }};
 let currentIndex = 0;
 let productList = [];
 
-// 🔥 이어하기 + 버튼 제어
+// 🔥 디버깅
+console.log("초기 data:", data);
+
+// 🔥 이어하기 + 충돌 방지
 window.onload = function(){
 
     let saved = localStorage.getItem("inventoryData");
 
-    if(saved){
+    // 🔥 서버 데이터 없을 때만 이어하기 적용
+    if(saved && data.length === 0){
         if(confirm("이전에 작업한 데이터가 있습니다.\n이어하시겠습니까?")){
             data = JSON.parse(saved);
 
@@ -115,10 +116,9 @@ window.onload = function(){
         }
     }
 
-    if(data.length > 0){
+    // 🔥 데이터 있으면 무조건 실행
+    if(data && data.length > 0){
         document.getElementById('uploadForm').style.display = 'none';
-
-        // 🔥 여기 핵심
         document.getElementById('newItemBtn').style.display = 'block';
 
         initProductList();
