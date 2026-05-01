@@ -1,176 +1,186 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ourbox 오산센터 재고조사</title>
+from flask import Flask, render_template, request, send_file, session, redirect, jsonify
+import pandas as pd
+import uuid
+import os
+import time
+from werkzeug.utils import secure_filename
 
-<style>
-body { font-family:sans-serif; padding:20px; background:#f0f9f4; }
-.header { text-align:center; font-size:26px; font-weight:bold; color:#2e7d32; }
+app = Flask(__name__)
+app.secret_key = "secret_key_123"
 
-.card { background:white; padding:20px; border-radius:12px; margin-top:10px; }
-
-input {
-    width:100%;
-    padding:16px;
-    font-size:20px;
-    margin-top:8px;
+admins = {
+    "김경민": "ourbox123"
 }
 
-button {
-    width:100%;
-    padding:16px;
-    font-size:18px;
-    margin-top:8px;
-    background:#66bb6a;
-    color:white;
-    border:none;
+users = {
+    "김경민": "ourbox",
+    "8층": "1234",
+    "7층": "5678"
 }
 
-.nav-buttons {
-    display:flex;
-    gap:6px;
-}
+UPLOAD_FOLDER = "files"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-.nav-buttons button {
-    flex:1;
-}
+FILE_EXPIRE_TIME = 60 * 60
 
-/* 신규 입력 UI */
-#newItemBox {
-    display:none;
-    background:white;
-    padding:15px;
-    border-radius:12px;
-    margin-top:10px;
-}
 
-/* 자동완성 */
-.autocomplete-items {
-    border:1px solid #ddd;
-    max-height:150px;
-    overflow-y:auto;
-    background:white;
-}
-.autocomplete-items div {
-    padding:10px;
-    cursor:pointer;
-}
-.autocomplete-items div:hover {
-    background:#e0f2f1;
-}
-</style>
-</head>
+def delete_old_files():
+    now = time.time()
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.isfile(file_path):
+            if now - os.path.getmtime(file_path) > FILE_EXPIRE_TIME:
+                try:
+                    os.remove(file_path)
+                except:
+                    pass
 
-<body>
 
-<div class="header">ourbox 오산센터 재고조사</div>
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
 
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <button type="submit">엑셀 업로드</button>
-</form>
 
-<div id="app"></div>
+@app.route('/login', methods=['POST'])
+def login():
+    user_id = request.form.get('id')
+    pw = request.form.get('pw')
+    role = request.form.get('role')
 
-<!-- 🔥 기본 숨김 -->
-<button id="newItemBtn" onclick="toggleNewItem()" style="display:none;">
-    신규 재고등록
-</button>
+    if role == "admin":
+        if user_id in admins and admins[user_id] == pw:
+            session['login'] = True
+            session['role'] = 'admin'
+            return redirect('/admin')
 
-<div id="newItemBox">
-    <input id="new_location" placeholder="로케이션">
-    <input id="new_name" placeholder="상품명">
-    <div id="autocomplete-box"></div>
+    elif role == "user":
+        if user_id in users and users[user_id] == pw:
+            session['login'] = True
+            session['role'] = 'user'
+            return redirect('/')
 
-    <input id="new_exp" placeholder="소비기한">
-    <input id="new_lot" placeholder="로트번호">
-    <input id="new_qty" placeholder="재고수량" inputmode="numeric">
+    return "로그인 실패"
 
-    <button onclick="addNewItem()">확인</button>
-    <button onclick="toggleNewItem()">취소</button>
-</div>
 
-<script>
-let data = {{ data|tojson }};
-let currentIndex = 0;
-let productList = [];
+@app.route('/')
+def index():
+    if not session.get('login') or session.get('role') != 'user':
+        return redirect('/login')
+    return render_template('index.html', data=[])
 
-// 🔥 이어하기 + 버튼 제어
-window.onload = function(){
 
-    let saved = localStorage.getItem("inventoryData");
+@app.route('/admin')
+def admin():
+    if not session.get('login') or session.get('role') != 'admin':
+        return redirect('/login')
 
-    if(saved){
-        if(confirm("이전에 작업한 데이터가 있습니다.\n이어하시겠습니까?")){
-            data = JSON.parse(saved);
+    files = []
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.isfile(file_path):
+            files.append({
+                "id": filename.replace(".xlsx", ""),
+                "time": time.strftime('%Y-%m-%d %H:%M:%S',
+                                      time.localtime(os.path.getmtime(file_path)))
+            })
 
-            let savedIndex = localStorage.getItem("currentIndex");
-            if(savedIndex){
-                currentIndex = Number(savedIndex);
-            }
-        }else{
-            localStorage.removeItem("inventoryData");
-            localStorage.removeItem("currentIndex");
-        }
-    }
+    files = sorted(files, key=lambda x: x["time"], reverse=True)
 
-    if(data.length > 0){
-        document.getElementById('uploadForm').style.display = 'none';
+    return render_template('admin.html', files=files)
 
-        // 🔥 여기 핵심
-        document.getElementById('newItemBtn').style.display = 'block';
 
-        initProductList();
-        render();
-    }
-};
+@app.route('/upload', methods=['POST'])
+def upload():
+    try:
+        file = request.files['file']
+        filename = secure_filename(file.filename.lower())
 
-// 상품 리스트
-function initProductList(){
-    productList = [...new Set(data.map(d => d["상품명"]))];
-}
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file, engine='openpyxl')
 
-// 자동완성
-function autocomplete(){
-    const input = document.getElementById("new_name");
-    const box = document.getElementById("autocomplete-box");
+        required_cols = ["로케이션", "상품명", "재고수량"]
+        for col in required_cols:
+            if col not in df.columns:
+                return f"{col} 없음"
 
-    input.addEventListener("input", function(){
-        box.innerHTML = "";
+        if "소비기한" not in df.columns:
+            df["소비기한"] = ""
+        else:
+            df["소비기한"] = df["소비기한"].astype(str).str[:10]
 
-        let val = this.value.toLowerCase();
+        if "로트번호" not in df.columns:
+            df["로트번호"] = ""
 
-        productList.forEach(item => {
-            if(item.toLowerCase().includes(val)){
-                let div = document.createElement("div");
-                div.innerText = item;
+        df["재고수량"] = (
+            df["재고수량"]
+            .astype(str)
+            .str.replace(",", "")
+        )
+        df["재고수량"] = pd.to_numeric(df["재고수량"], errors='coerce').fillna(0)
 
-                div.onclick = function(){
-                    input.value = item;
-                    box.innerHTML = "";
-                };
+        df = df.sort_values(by="로케이션")
+        df = df[["로케이션", "상품명", "소비기한", "로트번호", "재고수량"]]
 
-                box.appendChild(div);
-            }
-        });
-    });
-}
+        return render_template('index.html', data=df.to_dict(orient='records'))
 
-// 신규 UI
-function toggleNewItem(){
-    const box = document.getElementById('newItemBox');
+    except Exception as e:
+        return str(e)
 
-    if(box.style.display === 'none'){
-        box.style.display = 'block';
-        autocomplete();
-    }else{
-        box.style.display = 'none';
-    }
-}
-</script>
 
-<script src="/static/script.js"></script>
+# 🔥 핵심: 시트 2개 생성
+@app.route('/save', methods=['POST'])
+def save():
+    delete_old_files()
 
-</body>
-</html>
+    df = pd.DataFrame(request.json)
+
+    # 신규/기존 분리
+    if "신규" in df.columns:
+        new_df = df[df["신규"] == True].copy()
+        old_df = df[df["신규"] != True].copy()
+    else:
+        new_df = pd.DataFrame()
+        old_df = df.copy()
+
+    # 컬럼 정리
+    for d in [old_df, new_df]:
+        if "신규" in d.columns:
+            d.drop(columns=["신규"], inplace=True)
+
+    file_id = str(uuid.uuid4())
+    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        old_df.to_excel(writer, index=False, sheet_name='기존재고')
+
+        # 신규 시트는 항상 생성 (비어도)
+        new_df.to_excel(writer, index=False, sheet_name='신규재고')
+
+    return jsonify({"download_url": f"/download/{file_id}"})
+
+
+@app.route('/download/<file_id>')
+def download(file_id):
+    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
+    if not os.path.exists(path):
+        return "파일 없음"
+
+    return send_file(path, download_name="inventory.xlsx", as_attachment=True)
+
+
+@app.route('/delete/<file_id>', methods=['POST'])
+def delete_file(file_id):
+    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
+
+    if os.path.exists(path):
+        os.remove(path)
+        return "삭제 완료"
+
+    return "파일 없음"
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
