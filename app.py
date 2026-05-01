@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "secret_key_123"
 
-# 🔥 계정 추가는 여기에서만 하면 됨
 admins = {
     "김경민": "ourbox123",
 }
@@ -47,14 +46,12 @@ def login():
     pw = request.form.get('pw')
     role = request.form.get('role')
 
-    # 🔥 관리자 로그인
     if role == "admin":
         if user_id in admins and admins[user_id] == pw:
             session['login'] = True
             session['role'] = 'admin'
             return redirect('/admin')
 
-    # 🔥 사용자 로그인
     elif role == "user":
         if user_id in users and users[user_id] == pw:
             session['login'] = True
@@ -81,18 +78,15 @@ def upload():
     else:
         df = pd.read_excel(file, engine='openpyxl')
 
-    # 🔥 필수 컬럼
     required = ["로케이션", "상품명", "바코드", "재고수량"]
     for col in required:
         if col not in df.columns:
             return f"{col} 없음"
 
-    # 문자열 정리
     df["로케이션"] = df["로케이션"].astype(str).str.strip()
     df["상품명"] = df["상품명"].astype(str).str.strip()
     df["바코드"] = df["바코드"].astype(str).str.strip()
 
-    # 선택 컬럼
     if "소비기한" not in df.columns:
         df["소비기한"] = ""
     else:
@@ -101,7 +95,6 @@ def upload():
     if "로트번호" not in df.columns:
         df["로트번호"] = ""
 
-    # 🔥 재고수량 숫자만 추출
     df["재고수량"] = (
         df["재고수량"]
         .astype(str)
@@ -116,15 +109,24 @@ def upload():
     return render_template('index.html', data=df.to_dict(orient='records'))
 
 
+# 🔥 핵심: Sheet1 + Sheet2 저장
 @app.route('/save', methods=['POST'])
 def save():
     delete_old_files()
-    df = pd.DataFrame(request.json)
+
+    payload = request.json
+
+    main_data = payload.get("main", [])
+    new_data = payload.get("new", [])
 
     file_id = str(uuid.uuid4())
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
 
-    df.to_excel(path, index=False)
+    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+        pd.DataFrame(main_data).to_excel(writer, index=False, sheet_name='Sheet1')
+
+        if new_data:
+            pd.DataFrame(new_data).to_excel(writer, index=False, sheet_name='Sheet2')
 
     return jsonify({"download_url": f"/download/{file_id}"})
 
