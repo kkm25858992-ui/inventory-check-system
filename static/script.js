@@ -12,8 +12,17 @@ function render(){
     let item = data[currentIndex];
     let stock = cleanNumber(item["재고수량"]);
 
+    let percent = Math.round(((currentIndex + 1) / data.length) * 100);
+
     document.getElementById('app').innerHTML = `
     <div class="card">
+
+        <p><b>진행율:</b> ${currentIndex + 1} / ${data.length} (${percent}%)</p>
+
+        <div style="background:#ddd;height:10px;border-radius:5px;">
+            <div style="width:${percent}%;background:#4caf50;height:10px;border-radius:5px;"></div>
+        </div>
+
         <p><b>로케이션:</b> ${item["로케이션"] || ""}</p>
         <p><b>상품명:</b> ${item["상품명"] || ""}</p>
         <p><b>소비기한:</b> ${item["소비기한"] || ""}</p>
@@ -69,6 +78,8 @@ function next(){
     if(currentIndex < data.length - 1){
         currentIndex++;
         render();
+    } else {
+        alert("마지막 항목입니다");
     }
 }
 
@@ -114,4 +125,47 @@ function share(){
         navigator.clipboard.writeText(url);
         alert("다운로드 링크 복사됨");
     });
+}
+
+/* 🔥 신규 재고 추가 (시트2용) */
+function addNewItem(){
+    let location = document.getElementById('new_location').value;
+    let name = document.getElementById('new_name').value;
+    let exp = document.getElementById('new_exp').value;
+    let lot = document.getElementById('new_lot').value;
+    let qty = document.getElementById('new_qty').value;
+
+    if(!location || !name || !qty){
+        alert("필수값 입력");
+        return;
+    }
+
+    let stock = cleanNumber(qty);
+
+    data.push({
+        "로케이션": location,
+        "상품명": name,
+        "소비기한": exp,
+        "로트번호": lot,
+        "재고수량": stock,
+        "실수량": stock,
+        "차이수량": 0,
+        "신규": true   // 🔥 핵심 (시트2 구분)
+    });
+
+    localStorage.setItem("inventoryData", JSON.stringify(data));
+
+    document.getElementById('newItemBox').style.display = 'none';
+
+    document.getElementById('new_location').value = "";
+    document.getElementById('new_name').value = "";
+    document.getElementById('new_exp').value = "";
+    document.getElementById('new_lot').value = "";
+    document.getElementById('new_qty').value = "";
+
+    if(!productList.includes(name)){
+        productList.push(name);
+    }
+
+    render();
 }
