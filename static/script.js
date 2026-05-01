@@ -101,7 +101,7 @@ function same(){
     next();
 }
 
-/* ✅ 다운로드 (완전 수정) */
+/* ✅ 다운로드 */
 function download(){
     fetch('/save',{
         method:'POST',
@@ -114,7 +114,7 @@ function download(){
     });
 }
 
-/* ✅ 공유 (완전 수정) */
+/* ✅ 공유 (모바일 완벽 대응) */
 function share(){
     fetch('/save',{
         method:'POST',
@@ -125,24 +125,43 @@ function share(){
     .then(res=>{
         const url = location.origin + "/share/" + res.file_id;
 
+        // 🔥 1순위: 모바일 네이티브 공유
+        if(navigator.share){
+            navigator.share({
+                title: "재고조사 결과",
+                text: "재고조사 파일 다운로드",
+                url: url
+            }).catch(()=>{});
+            return;
+        }
+
+        // 🔥 2순위: 클립보드 복사
         if(navigator.clipboard){
             navigator.clipboard.writeText(url)
-                .then(()=> alert("공유 링크 복사됨"))
-                .catch(()=> fallbackCopy(url));
+                .then(()=> alert("링크 복사됨"))
+                .catch(()=> showManualCopy(url));
         } else {
-            fallbackCopy(url);
+            showManualCopy(url);
         }
     });
 }
 
-function fallbackCopy(text){
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-    alert("공유 링크 복사됨");
+/* 🔥 수동 복사 UI */
+function showManualCopy(url){
+    const app = document.getElementById('app');
+
+    const div = document.createElement("div");
+    div.style.marginTop = "10px";
+
+    div.innerHTML = `
+        <div class="card">
+            <p><b>링크 복사 안내</b></p>
+            <p>아래 링크를 길게 눌러 복사하세요</p>
+            <input value="${url}" readonly style="width:100%;padding:10px;">
+        </div>
+    `;
+
+    app.prepend(div);
 }
 
 /* 신규 재고 */
