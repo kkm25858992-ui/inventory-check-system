@@ -1,7 +1,9 @@
+// 숫자 정리
 function cleanNumber(value){
     return parseFloat(String(value).replace(/,/g,'')) || 0;
 }
 
+// 화면 렌더링
 function render(){
     if(data.length === 0) return;
 
@@ -43,6 +45,7 @@ function render(){
     updateDiff();
 }
 
+// 차이 계산
 function updateDiff(){
     let input = document.getElementById('real_qty');
     if(!input) return;
@@ -60,6 +63,7 @@ function updateDiff(){
     localStorage.setItem("inventoryData", JSON.stringify(data));
 }
 
+// 엔터 → 다음
 function enterNext(e){
     if(e.key === "Enter"){
         e.preventDefault();
@@ -67,6 +71,7 @@ function enterNext(e){
     }
 }
 
+// 다음
 function next(){
     if(currentIndex < data.length - 1){
         currentIndex++;
@@ -74,6 +79,7 @@ function next(){
     }
 }
 
+// 이전
 function prev(){
     if(currentIndex > 0){
         currentIndex--;
@@ -81,6 +87,7 @@ function prev(){
     }
 }
 
+// 동일 처리
 function same(){
     let stock = cleanNumber(data[currentIndex]["재고수량"]);
 
@@ -92,6 +99,7 @@ function same(){
     next();
 }
 
+// 다운로드
 function download(){
     fetch('/save',{
         method:'POST',
@@ -104,6 +112,7 @@ function download(){
     });
 }
 
+// 공유
 function share(){
     fetch('/save',{
         method:'POST',
@@ -118,14 +127,14 @@ function share(){
     });
 }
 
-// 🔥 신규 재고 추가 (수정 완료)
+// 🔥 신규 재고 추가 (완성)
 function addNewItem(){
 
-    let location = document.getElementById('new_location').value;
-    let name = document.getElementById('new_name').value;
-    let exp = document.getElementById('new_exp').value;
-    let lot = document.getElementById('new_lot').value;
-    let qty = document.getElementById('new_qty').value;
+    let location = document.getElementById('new_location').value.trim();
+    let name = document.getElementById('new_name').value.trim();
+    let exp = document.getElementById('new_exp').value.trim();
+    let lot = document.getElementById('new_lot').value.trim();
+    let qty = document.getElementById('new_qty').value.trim();
 
     if(!location || !name || !qty){
         alert("필수값 입력");
@@ -134,29 +143,36 @@ function addNewItem(){
 
     let stock = cleanNumber(qty);
 
-    data.push({
+    let newItem = {
         "로케이션": location,
         "상품명": name,
         "소비기한": exp,
         "로트번호": lot,
         "재고수량": stock,
-        "실수량": stock,   // 🔥 자동 입력
-        "차이수량": 0
-    });
+        "실수량": stock,
+        "차이수량": 0,
+        "신규": true   // 🔥 핵심 (시트2 분리용)
+    };
+
+    data.push(newItem);
 
     localStorage.setItem("inventoryData", JSON.stringify(data));
 
+    // 입력 초기화
     document.getElementById('newItemBox').style.display = 'none';
-
     document.getElementById('new_location').value = "";
     document.getElementById('new_name').value = "";
     document.getElementById('new_exp').value = "";
     document.getElementById('new_lot').value = "";
     document.getElementById('new_qty').value = "";
 
+    // 상품 리스트 업데이트
     if(!productList.includes(name)){
         productList.push(name);
     }
+
+    // 🔥 바로 신규 항목으로 이동 (사용성 개선)
+    currentIndex = data.length - 1;
 
     render();
 }
