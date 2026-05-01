@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "secret_key_123"
 
+# 계정
 admins = {
     "김경민": "ourbox123"
 }
@@ -36,11 +37,13 @@ def delete_old_files():
                     pass
 
 
+# 로그인 페이지
 @app.route('/login')
 def login_page():
     return render_template('login.html')
 
 
+# 로그인 처리
 @app.route('/login', methods=['POST'])
 def login():
     user_id = request.form.get('id')
@@ -62,6 +65,7 @@ def login():
     return "로그인 실패"
 
 
+# 사용자 화면
 @app.route('/')
 def index():
     if not session.get('login') or session.get('role') != 'user':
@@ -69,6 +73,7 @@ def index():
     return render_template('index.html', data=[])
 
 
+# 관리자 화면
 @app.route('/admin')
 def admin():
     if not session.get('login') or session.get('role') != 'admin':
@@ -89,6 +94,7 @@ def admin():
     return render_template('admin.html', files=files)
 
 
+# 업로드
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
@@ -129,14 +135,13 @@ def upload():
         return str(e)
 
 
-# 🔥 핵심: 시트 2개 생성
+# 🔥 저장 (시트 분리 포함)
 @app.route('/save', methods=['POST'])
 def save():
     delete_old_files()
 
     df = pd.DataFrame(request.json)
 
-    # 신규/기존 분리
     if "신규" in df.columns:
         new_df = df[df["신규"] == True].copy()
         old_df = df[df["신규"] != True].copy()
@@ -144,7 +149,6 @@ def save():
         new_df = pd.DataFrame()
         old_df = df.copy()
 
-    # 컬럼 정리
     for d in [old_df, new_df]:
         if "신규" in d.columns:
             d.drop(columns=["신규"], inplace=True)
@@ -154,13 +158,12 @@ def save():
 
     with pd.ExcelWriter(path, engine='openpyxl') as writer:
         old_df.to_excel(writer, index=False, sheet_name='기존재고')
-
-        # 신규 시트는 항상 생성 (비어도)
         new_df.to_excel(writer, index=False, sheet_name='신규재고')
 
     return jsonify({"download_url": f"/download/{file_id}"})
 
 
+# 다운로드
 @app.route('/download/<file_id>')
 def download(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
@@ -171,6 +174,7 @@ def download(file_id):
     return send_file(path, download_name="inventory.xlsx", as_attachment=True)
 
 
+# 삭제
 @app.route('/delete/<file_id>', methods=['POST'])
 def delete_file(file_id):
     path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
