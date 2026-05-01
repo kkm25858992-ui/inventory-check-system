@@ -16,7 +16,7 @@ admins = {
 users = {
     "김경민": "ourbox",
     "8층": "1234",
-    "user2": "5678"
+    "7층": "5678"
 }
 
 UPLOAD_FOLDER = "files"
