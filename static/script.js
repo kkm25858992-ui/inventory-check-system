@@ -1,195 +1,190 @@
-from flask import Flask, render_template, request, send_file, session, redirect, jsonify
-import pandas as pd
-import uuid
-import os
-import time
-from werkzeug.utils import secure_filename
-
-app = Flask(__name__)
-app.secret_key = "secret_key_123"
-
-# 계정
-admins = {
-    "김경민": "ourbox123",
+function cleanNumber(value){
+    return parseFloat(String(value).replace(/,/g,'')) || 0;
 }
 
-users = {
-    "김경민": "ourbox",
-    "8층": "1234",
-    "7층": "5678"
+function render(){
+    if(data.length === 0) return;
+
+    document.getElementById('newItemBtn').style.display = 'block';
+
+    localStorage.setItem("currentIndex", currentIndex);
+
+    let item = data[currentIndex];
+    let stock = cleanNumber(item["재고수량"]);
+
+    let percent = Math.round(((currentIndex + 1) / data.length) * 100);
+
+    document.getElementById('app').innerHTML = `
+    <div class="card">
+
+        <p><b>진행율:</b> ${currentIndex + 1} / ${data.length} (${percent}%)</p>
+
+        <div style="background:#ddd;height:10px;border-radius:5px;">
+            <div style="width:${percent}%;background:#4caf50;height:10px;border-radius:5px;"></div>
+        </div>
+
+        <p><b>로케이션:</b> ${item["로케이션"] || ""}</p>
+        <p><b>상품명:</b> ${item["상품명"] || ""}</p>
+        <p><b>소비기한:</b> ${item["소비기한"] || ""}</p>
+        <p><b>로트번호:</b> ${item["로트번호"] || ""}</p>
+        <p><b>재고수량:</b> ${stock}</p>
+
+        <input id="real_qty" placeholder="실수량"
+            value="${item["실수량"] ?? ""}"
+            inputmode="numeric"
+            oninput="updateDiff()"
+            onkeydown="enterNext(event)">
+
+        <p>차이수량: <span id="diff">0</span></p>
+
+        <div class="nav-buttons">
+            <button onclick="prev()">이전</button>
+            <button onclick="same()">동일</button>
+            <button onclick="next()">다음</button>
+        </div>
+
+        <button onclick="download()">다운로드</button>
+        <button onclick="share()">공유</button>
+    </div>
+    `;
+
+    updateDiff();
 }
 
-UPLOAD_FOLDER = "files"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+function updateDiff(){
+    let input = document.getElementById('real_qty');
+    if(!input) return;
 
-FILE_EXPIRE_TIME = 60 * 60
+    let real = cleanNumber(input.value);
+    let stock = cleanNumber(data[currentIndex]["재고수량"]);
+    let diff = real - stock;
 
+    document.getElementById('diff').innerText = diff;
 
-# 오래된 파일 삭제
-def delete_old_files():
-    now = time.time()
-    for filename in os.listdir(UPLOAD_FOLDER):
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        if os.path.isfile(file_path):
-            if now - os.path.getmtime(file_path) > FILE_EXPIRE_TIME:
-                try:
-                    os.remove(file_path)
-                except:
-                    pass
+    data[currentIndex]["실수량"] = real;
+    data[currentIndex]["차이수량"] = diff;
 
+    localStorage.setItem("inventoryData", JSON.stringify(data));
+}
 
-# 로그인
-@app.route('/login')
-def login_page():
-    return render_template('login.html')
+function enterNext(e){
+    if(e.key === "Enter"){
+        e.preventDefault();
+        next();
+    }
+}
 
+function next(){
+    if(currentIndex < data.length - 1){
+        currentIndex++;
+        render();
+    } else {
+        alert("마지막 항목입니다");
+    }
+}
 
-@app.route('/login', methods=['POST'])
-def login():
-    user_id = request.form.get('id')
-    pw = request.form.get('pw')
-    role = request.form.get('role')
+function prev(){
+    if(currentIndex > 0){
+        currentIndex--;
+        render();
+    }
+}
 
-    if role == "admin":
-        if user_id in admins and admins[user_id] == pw:
-            session['login'] = True
-            session['role'] = 'admin'
-            return redirect('/admin')
+function same(){
+    let stock = cleanNumber(data[currentIndex]["재고수량"]);
 
-    elif role == "user":
-        if user_id in users and users[user_id] == pw:
-            session['login'] = True
-            session['role'] = 'user'
-            return redirect('/')
+    data[currentIndex]["실수량"] = stock;
+    data[currentIndex]["차이수량"] = 0;
 
-    return "로그인 실패"
+    localStorage.setItem("inventoryData", JSON.stringify(data));
 
+    next();
+}
 
-# 사용자 페이지
-@app.route('/')
-def index():
-    if not session.get('login') or session.get('role') != 'user':
-        return redirect('/login')
-    return render_template('index.html', data=[])
+function download(){
+    fetch('/save',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        window.location = res.download_url;
+    });
+}
 
+/* 🔥 여기만 교체된 부분 */
+function share(){
+    fetch('/save',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)
+    })
+    .then(res=>res.json())
+    .then(res=>{
+        const url = location.origin + "/share/" + res.download_url.split('/').pop();
 
-# 관리자
-@app.route('/admin')
-def admin():
-    if not session.get('login') or session.get('role') != 'admin':
-        return redirect('/login')
+        // 클립보드 + fallback
+        if(navigator.clipboard){
+            navigator.clipboard.writeText(url)
+                .then(()=> alert("공유 링크 복사됨"))
+                .catch(()=> fallbackCopy(url));
+        } else {
+            fallbackCopy(url);
+        }
+    });
+}
 
-    files = []
-    for filename in os.listdir(UPLOAD_FOLDER):
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        if os.path.isfile(file_path):
-            files.append({
-                "id": filename.replace(".xlsx", ""),
-                "time": time.strftime('%Y-%m-%d %H:%M:%S',
-                                      time.localtime(os.path.getmtime(file_path)))
-            })
+// 구형 브라우저 대응
+function fallbackCopy(text){
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+    alert("공유 링크 복사됨");
+}
 
-    files = sorted(files, key=lambda x: x["time"], reverse=True)
+/* 신규 재고 */
+function addNewItem(){
+    let location = document.getElementById('new_location').value;
+    let name = document.getElementById('new_name').value;
+    let exp = document.getElementById('new_exp').value;
+    let lot = document.getElementById('new_lot').value;
+    let qty = document.getElementById('new_qty').value;
 
-    return render_template('admin.html', files=files)
+    if(!location || !name || !qty){
+        alert("필수값 입력");
+        return;
+    }
 
+    let stock = cleanNumber(qty);
 
-# 업로드
-@app.route('/upload', methods=['POST'])
-def upload():
-    try:
-        file = request.files['file']
-        filename = secure_filename(file.filename.lower())
+    data.push({
+        "로케이션": location,
+        "상품명": name,
+        "소비기한": exp,
+        "로트번호": lot,
+        "재고수량": stock,
+        "실수량": stock,
+        "차이수량": 0,
+        "신규": true
+    });
 
-        if filename.endswith('.csv'):
-            df = pd.read_csv(file)
-        else:
-            df = pd.read_excel(file, engine='openpyxl')
+    localStorage.setItem("inventoryData", JSON.stringify(data));
 
-        required_cols = ["로케이션", "상품명", "재고수량"]
-        for col in required_cols:
-            if col not in df.columns:
-                return f"{col} 없음"
+    document.getElementById('newItemBox').style.display = 'none';
 
-        if "소비기한" not in df.columns:
-            df["소비기한"] = ""
-        else:
-            df["소비기한"] = df["소비기한"].astype(str).str[:10]
+    document.getElementById('new_location').value = "";
+    document.getElementById('new_name').value = "";
+    document.getElementById('new_exp').value = "";
+    document.getElementById('new_lot').value = "";
+    document.getElementById('new_qty').value = "";
 
-        if "로트번호" not in df.columns:
-            df["로트번호"] = ""
+    if(!productList.includes(name)){
+        productList.push(name);
+    }
 
-        df["재고수량"] = df["재고수량"].astype(str).str.replace(",", "")
-        df["재고수량"] = pd.to_numeric(df["재고수량"], errors='coerce').fillna(0)
-
-        df = df.sort_values(by="로케이션")
-        df = df[["로케이션", "상품명", "소비기한", "로트번호", "재고수량"]]
-
-        return render_template('index.html', data=df.to_dict(orient='records'))
-
-    except Exception as e:
-        return str(e)
-
-
-# 저장 (시트1 / 시트2 분리)
-@app.route('/save', methods=['POST'])
-def save():
-    delete_old_files()
-
-    df = pd.DataFrame(request.json)
-
-    file_id = str(uuid.uuid4())
-    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
-
-    if "신규" in df.columns:
-        df_new = df[df["신규"] == True]
-        df_old = df[df["신규"] != True]
-    else:
-        df_old = df
-        df_new = pd.DataFrame()
-
-    with pd.ExcelWriter(path, engine='openpyxl') as writer:
-        df_old.to_excel(writer, index=False, sheet_name="시트1")
-
-        if not df_new.empty:
-            df_new.to_excel(writer, index=False, sheet_name="시트2")
-
-    return jsonify({"file_id": file_id})
-
-
-# 🔥 공유 다운로드 (로그인 없이)
-@app.route('/share/<file_id>')
-def share_download(file_id):
-    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
-
-    if not os.path.exists(path):
-        return "파일 없음"
-
-    return send_file(path, download_name="inventory.xlsx", as_attachment=True)
-
-
-# 일반 다운로드 (관리자용)
-@app.route('/download/<file_id>')
-def download(file_id):
-    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
-
-    if not os.path.exists(path):
-        return "파일 없음"
-
-    return send_file(path, download_name="inventory.xlsx", as_attachment=True)
-
-
-# 삭제
-@app.route('/delete/<file_id>', methods=['POST'])
-def delete_file(file_id):
-    path = os.path.join(UPLOAD_FOLDER, f"{file_id}.xlsx")
-
-    if os.path.exists(path):
-        os.remove(path)
-        return "삭제 완료"
-
-    return "파일 없음"
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    render();
+}
