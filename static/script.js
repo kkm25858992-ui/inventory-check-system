@@ -2,6 +2,9 @@ function cleanNumber(value){
     return parseFloat(String(value).replace(/,/g,'')) || 0;
 }
 
+// 🔥 신규 재고 별도 저장
+let newItems = JSON.parse(localStorage.getItem("newItems") || "[]");
+
 function render(){
     if(data.length === 0) return;
 
@@ -12,8 +15,17 @@ function render(){
     let item = data[currentIndex];
     let stock = cleanNumber(item["재고수량"]);
 
+    let progress = ((currentIndex + 1) / data.length * 100).toFixed(1);
+
     document.getElementById('app').innerHTML = `
         <div class="card">
+
+            <!-- 🔥 진행률 -->
+            <p><b>진행:</b> ${currentIndex + 1} / ${data.length} (${progress}%)</p>
+            <div style="background:#eee; height:10px; border-radius:5px;">
+                <div style="width:${progress}%; height:10px; background:#66bb6a; border-radius:5px;"></div>
+            </div>
+
             <p><b>로케이션:</b> ${item["로케이션"] || ""}</p>
             <p><b>상품명:</b> ${item["상품명"] || ""}</p>
             <p><b>소비기한:</b> ${item["소비기한"] || ""}</p>
@@ -92,11 +104,15 @@ function same(){
     next();
 }
 
+// 🔥 저장 (Sheet1 + Sheet2)
 function download(){
     fetch('/save',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(data)
+        body:JSON.stringify({
+            main: data,
+            new: newItems
+        })
     })
     .then(res=>res.json())
     .then(res=>{
@@ -108,7 +124,10 @@ function share(){
     fetch('/save',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(data)
+        body:JSON.stringify({
+            main: data,
+            new: newItems
+        })
     })
     .then(res=>res.json())
     .then(res=>{
@@ -118,7 +137,7 @@ function share(){
     });
 }
 
-// 🔥 신규 재고 추가 (수정 완료)
+// 🔥 신규 재고 추가
 function addNewItem(){
 
     let location = document.getElementById('new_location').value;
@@ -134,17 +153,21 @@ function addNewItem(){
 
     let stock = cleanNumber(qty);
 
-    data.push({
+    let newData = {
         "로케이션": location,
         "상품명": name,
         "소비기한": exp,
         "로트번호": lot,
         "재고수량": stock,
-        "실수량": stock,   // 🔥 자동 입력
+        "실수량": stock,
         "차이수량": 0
-    });
+    };
+
+    data.push(newData);
+    newItems.push(newData);
 
     localStorage.setItem("inventoryData", JSON.stringify(data));
+    localStorage.setItem("newItems", JSON.stringify(newItems));
 
     document.getElementById('newItemBox').style.display = 'none';
 
