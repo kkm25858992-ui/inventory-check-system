@@ -10,9 +10,18 @@ function render(){
     localStorage.setItem("currentIndex", currentIndex);
 
     let item = data[currentIndex];
+
     let stock = cleanNumber(item["재고수량"]);
+    let unitQty = cleanNumber(item["입수량"]);
 
     let percent = Math.round(((currentIndex + 1) / data.length) * 100);
+
+    // 입수량 존재 여부
+    let hasUnitQty =
+        item["입수량"] !== undefined &&
+        item["입수량"] !== null &&
+        item["입수량"] !== "" &&
+        unitQty > 0;
 
     document.getElementById('app').innerHTML = `
     <div class="card">
@@ -27,9 +36,39 @@ function render(){
         <p><b>상품명:</b> ${item["상품명"] || ""}</p>
         <p><b>소비기한:</b> ${item["소비기한"] || ""}</p>
         <p><b>로트번호:</b> ${item["로트번호"] || ""}</p>
+
+        ${
+            hasUnitQty
+            ? `<p><b>입수량:</b> ${unitQty}</p>`
+            : ``
+        }
+
         <p><b>재고수량:</b> ${stock}</p>
 
-        <input id="real_qty" placeholder="실수량"
+        ${
+            hasUnitQty
+            ? `
+                <input
+                    id="box_qty"
+                    placeholder="박스수"
+                    inputmode="numeric"
+                    value="${item["박스수"] ?? ""}"
+                    oninput="calculateRealQty()"
+                >
+
+                <input
+                    id="each_qty"
+                    placeholder="낱개수량"
+                    inputmode="numeric"
+                    value="${item["낱개수량"] ?? ""}"
+                    oninput="calculateRealQty()"
+                >
+            `
+            : ``
+        }
+
+        <input id="real_qty"
+            placeholder="실수량"
             value="${item["실수량"] ?? ""}"
             inputmode="numeric"
             oninput="updateDiff()"
@@ -51,12 +90,51 @@ function render(){
     updateDiff();
 }
 
+/* =========================
+   박스수 + 낱개 계산
+========================= */
+function calculateRealQty(){
+
+    let item = data[currentIndex];
+
+    let unitQty = cleanNumber(item["입수량"]);
+
+    let boxQty =
+        cleanNumber(
+            document.getElementById('box_qty')?.value || 0
+        );
+
+    let eachQty =
+        cleanNumber(
+            document.getElementById('each_qty')?.value || 0
+        );
+
+    let total =
+        (unitQty * boxQty) + eachQty;
+
+    // 저장
+    item["박스수"] = boxQty;
+    item["낱개수량"] = eachQty;
+
+    // 실수량 자동 입력
+    document.getElementById('real_qty').value = total;
+
+    updateDiff();
+}
+
 function updateDiff(){
+
     let input = document.getElementById('real_qty');
+
     if(!input) return;
 
     let real = cleanNumber(input.value);
-    let stock = cleanNumber(data[currentIndex]["재고수량"]);
+
+    let stock =
+        cleanNumber(
+            data[currentIndex]["재고수량"]
+        );
+
     let diff = real - stock;
 
     document.getElementById('diff').innerText = diff;
@@ -64,7 +142,10 @@ function updateDiff(){
     data[currentIndex]["실수량"] = real;
     data[currentIndex]["차이수량"] = diff;
 
-    localStorage.setItem("inventoryData", JSON.stringify(data));
+    localStorage.setItem(
+        "inventoryData",
+        JSON.stringify(data)
+    );
 }
 
 function enterNext(e){
@@ -91,12 +172,23 @@ function prev(){
 }
 
 function same(){
-    let stock = cleanNumber(data[currentIndex]["재고수량"]);
+
+    let stock =
+        cleanNumber(
+            data[currentIndex]["재고수량"]
+        );
 
     data[currentIndex]["실수량"] = stock;
     data[currentIndex]["차이수량"] = 0;
 
-    localStorage.setItem("inventoryData", JSON.stringify(data));
+    // 박스/낱개 자동 세팅 제거
+    data[currentIndex]["박스수"] = "";
+    data[currentIndex]["낱개수량"] = "";
+
+    localStorage.setItem(
+        "inventoryData",
+        JSON.stringify(data)
+    );
 
     next();
 }
@@ -110,11 +202,12 @@ function download(){
     })
     .then(res=>res.json())
     .then(res=>{
-        window.location = "/download/" + res.file_id;
+        window.location =
+            "/download/" + res.file_id;
     });
 }
 
-/* ✅ 공유 (모바일 완벽 대응) */
+/* ✅ 공유 */
 function share(){
     fetch('/save',{
         method:'POST',
@@ -123,41 +216,57 @@ function share(){
     })
     .then(res=>res.json())
     .then(res=>{
-        const url = location.origin + "/share/" + res.file_id;
 
-        // 🔥 1순위: 모바일 네이티브 공유
+        const url =
+            location.origin +
+            "/share/" +
+            res.file_id;
+
         if(navigator.share){
+
             navigator.share({
                 title: "재고조사 결과",
                 text: "재고조사 파일 다운로드",
                 url: url
             }).catch(()=>{});
+
             return;
         }
 
-        // 🔥 2순위: 클립보드 복사
         if(navigator.clipboard){
-            navigator.clipboard.writeText(url)
+
+            navigator.clipboard
+                .writeText(url)
                 .then(()=> alert("링크 복사됨"))
                 .catch(()=> showManualCopy(url));
+
         } else {
             showManualCopy(url);
         }
     });
 }
 
-/* 🔥 수동 복사 UI */
+/* 수동복사 */
 function showManualCopy(url){
-    const app = document.getElementById('app');
 
-    const div = document.createElement("div");
+    const app =
+        document.getElementById('app');
+
+    const div =
+        document.createElement("div");
+
     div.style.marginTop = "10px";
 
     div.innerHTML = `
         <div class="card">
             <p><b>링크 복사 안내</b></p>
             <p>아래 링크를 길게 눌러 복사하세요</p>
-            <input value="${url}" readonly style="width:100%;padding:10px;">
+
+            <input
+                value="${url}"
+                readonly
+                style="width:100%;padding:10px;"
+            >
         </div>
     `;
 
@@ -166,11 +275,21 @@ function showManualCopy(url){
 
 /* 신규 재고 */
 function addNewItem(){
-    let location = document.getElementById('new_location').value;
-    let name = document.getElementById('new_name').value;
-    let exp = document.getElementById('new_exp').value;
-    let lot = document.getElementById('new_lot').value;
-    let qty = document.getElementById('new_qty').value;
+
+    let location =
+        document.getElementById('new_location').value;
+
+    let name =
+        document.getElementById('new_name').value;
+
+    let exp =
+        document.getElementById('new_exp').value;
+
+    let lot =
+        document.getElementById('new_lot').value;
+
+    let qty =
+        document.getElementById('new_qty').value;
 
     if(!location || !name || !qty){
         alert("필수값 입력");
@@ -184,21 +303,41 @@ function addNewItem(){
         "상품명": name,
         "소비기한": exp,
         "로트번호": lot,
+        "입수량": "",
         "재고수량": stock,
         "실수량": stock,
         "차이수량": 0,
         "신규": true
     });
 
-    localStorage.setItem("inventoryData", JSON.stringify(data));
+    localStorage.setItem(
+        "inventoryData",
+        JSON.stringify(data)
+    );
 
-    document.getElementById('newItemBox').style.display = 'none';
+    document.getElementById(
+        'newItemBox'
+    ).style.display = 'none';
 
-    document.getElementById('new_location').value = "";
-    document.getElementById('new_name').value = "";
-    document.getElementById('new_exp').value = "";
-    document.getElementById('new_lot').value = "";
-    document.getElementById('new_qty').value = "";
+    document.getElementById(
+        'new_location'
+    ).value = "";
+
+    document.getElementById(
+        'new_name'
+    ).value = "";
+
+    document.getElementById(
+        'new_exp'
+    ).value = "";
+
+    document.getElementById(
+        'new_lot'
+    ).value = "";
+
+    document.getElementById(
+        'new_qty'
+    ).value = "";
 
     if(!productList.includes(name)){
         productList.push(name);
