@@ -84,6 +84,7 @@ function render(){
 
         <button onclick="download()">다운로드</button>
         <button onclick="share()">공유</button>
+        <button onclick="createQR()">QR코드 생성</button>
     </div>
     `;
 
@@ -344,4 +345,70 @@ function addNewItem(){
     }
 
     render();
+}
+
+/* =========================
+   QR 생성
+========================= */
+function createQR(){
+
+    fetch('/save',{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify(data)
+    })
+    .then(res=>res.json())
+    .then(res=>{
+
+        const qrUrl =
+            "/qr/" +
+            res.file_id;
+
+        let old =
+            document.getElementById("qr-box");
+
+        if(old){
+            old.remove();
+        }
+
+        const div =
+            document.createElement("div");
+
+        div.id = "qr-box";
+
+        div.innerHTML = `
+            <div class="card">
+
+                <h3 style="text-align:center;">
+                    QR코드
+                </h3>
+
+                <img
+                    src="${qrUrl}"
+                    style="
+                        width:250px;
+                        max-width:100%;
+                        display:block;
+                        margin:auto;
+                    "
+                >
+
+                <p style="text-align:center;">
+                    QR 스캔 시 엑셀 다운로드
+                </p>
+
+            </div>
+        `;
+
+        document
+            .getElementById("app")
+            .appendChild(div);
+
+    })
+    .catch(err=>{
+        alert("QR 생성 실패");
+        console.error(err);
+    });
 }
