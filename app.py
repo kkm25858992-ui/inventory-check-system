@@ -3,6 +3,9 @@ import pandas as pd
 import uuid
 import os
 import time
+import qrcode
+
+from io import BytesIO
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -395,6 +398,25 @@ def share_download(file_id):
         as_attachment=True
     )
 
+# =========================
+# QR 생성
+# =========================
+@app.route('/qr/<file_id>')
+def generate_qr(file_id):
+
+    url = request.host_url.rstrip("/") + "/share/" + file_id
+
+    qr = qrcode.make(url)
+
+    img_io = BytesIO()
+    qr.save(img_io, "PNG")
+    img_io.seek(0)
+
+    return send_file(
+        img_io,
+        mimetype="image/png"
+    )
+    
 # =========================
 # 삭제
 # =========================
