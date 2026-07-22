@@ -366,41 +366,49 @@ function createQR(){
             "/qr/" +
             res.file_id;
 
-        let old =
-            document.getElementById("qr-box");
+        // 기존 QR 제거
+        let old = document.getElementById("qr-box");
 
         if(old){
             old.remove();
         }
 
-        const div =
-            document.createElement("div");
+        const div = document.createElement("div");
 
         div.id = "qr-box";
 
         div.innerHTML = `
-            <div class="card">
+<div class="card">
 
-                <h3 style="text-align:center;">
-                    QR코드
-                </h3>
+    <h3 style="text-align:center;">
+        QR코드
+    </h3>
 
-                <img
-                    src="${qrUrl}"
-                    style="
-                        width:250px;
-                        max-width:100%;
-                        display:block;
-                        margin:auto;
-                    "
-                >
+    <img
+        src="${qrUrl}"
+        style="
+            width:250px;
+            max-width:100%;
+            display:block;
+            margin:auto;
+        "
+    >
 
-                <p style="text-align:center;">
-                    QR 스캔 시 엑셀 다운로드
-                </p>
+    <p style="text-align:center;">
+        QR 스캔 시 엑셀 다운로드
+    </p>
 
-            </div>
-        `;
+    <button
+        onclick="closeQR()"
+        style="
+            margin-top:15px;
+            background:#f44336;
+        ">
+        닫기
+    </button>
+
+</div>
+`;
 
         document
             .getElementById("app")
@@ -411,4 +419,16 @@ function createQR(){
         alert("QR 생성 실패");
         console.error(err);
     });
+}
+
+function closeQR(){
+
+    const qrBox = document.getElementById("qr-box");
+
+    if(qrBox){
+        qrBox.remove();
+    }
+
+    // 화면을 현재 항목으로 다시 렌더링
+    render();
 }
