@@ -429,6 +429,4 @@ function closeQR(){
         qrBox.remove();
     }
 
-    // 화면을 현재 항목으로 다시 렌더링
-    render();
 }
