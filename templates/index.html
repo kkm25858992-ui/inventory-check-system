@@ -7,11 +7,10 @@
 
 <meta
     name="viewport"
-    content="width=device-width, initial-scale=1"
+    content="width=device-width, initial-scale=1.0"
 >
 
 <title>ourbox 오산센터 재고조사</title>
-
 
 <style>
 
@@ -19,10 +18,12 @@
     box-sizing: border-box;
 }
 
-
 body {
 
-    font-family: sans-serif;
+    font-family:
+        Arial,
+        "Malgun Gothic",
+        sans-serif;
 
     padding: 15px;
 
@@ -31,6 +32,10 @@ body {
     background: #f0f9f4;
 }
 
+
+/* =========================
+   헤더
+========================= */
 
 .header {
 
@@ -46,20 +51,28 @@ body {
 }
 
 
+/* =========================
+   카드
+========================= */
+
 .card {
 
     background: white;
 
-    padding: 18px;
+    padding: 20px;
 
     border-radius: 12px;
 
     margin-top: 10px;
 
     box-shadow:
-        0 2px 6px rgba(0,0,0,0.08);
+        0 2px 8px rgba(0,0,0,0.08);
 }
 
+
+/* =========================
+   입력창
+========================= */
 
 input {
 
@@ -74,8 +87,22 @@ input {
     border: 1px solid #ccc;
 
     border-radius: 8px;
+
+    outline: none;
 }
 
+input:focus {
+
+    border-color: #4caf50;
+
+    box-shadow:
+        0 0 0 2px rgba(76,175,80,0.15);
+}
+
+
+/* =========================
+   버튼
+========================= */
 
 button {
 
@@ -94,215 +121,229 @@ button {
     border: none;
 
     border-radius: 8px;
-}
 
+    font-weight: bold;
+}
 
 button:active {
 
-    opacity: 0.7;
+    transform: scale(0.98);
 }
 
 
-.product-check-btn,
-.download-btn,
-.share-btn {
+/* =========================
+   제품 확인 버튼
+========================= */
 
-    background: #66bb6a;
-
-    color: white;
-}
-
-
-.rack-btn {
+.product-button {
 
     background: #66bb6a;
 }
 
 
-.barcode-btn {
+/* =========================
+   다운로드 / 공유
+========================= */
+
+.download-button {
+
+    background: #66bb6a;
+}
+
+.share-button {
 
     background: #66bb6a;
 }
 
 
-.save-qty-btn {
+/* =========================
+   현재 단계
+========================= */
 
-    background: #66bb6a;
+.step-title {
+
+    font-size: 23px;
+
+    font-weight: bold;
+
+    margin-bottom: 10px;
+
+    text-align: center;
 }
 
 
-.qr-btn {
+/* =========================
+   제품정보
+========================= */
 
-    background: #66bb6a;
-}
+.info-box {
 
+    background: #f5f5f5;
 
-.upload-btn {
+    border-radius: 8px;
 
-    background: #66bb6a;
-}
-
-
-#uploadBox {
-
-    background: white;
-
-    padding: 15px;
-
-    border-radius: 12px;
-}
-
-
-.info-row {
-
-    font-size: 18px;
+    padding: 12px;
 
     margin-top: 10px;
 }
 
+.info-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 7px 0;
+
+    border-bottom: 1px solid #ddd;
+}
+
+.info-row:last-child {
+
+    border-bottom: none;
+}
 
 .info-label {
 
     font-weight: bold;
 }
 
+.info-value {
 
-.qty-title {
-
-    font-size: 20px;
-
-    font-weight: bold;
-
-    margin-top: 20px;
+    text-align: right;
 }
 
 
-.qty-result {
+/* =========================
+   수량 계산
+========================= */
 
-    background: #f1f8e9;
-
-    padding: 15px;
-
-    border-radius: 8px;
-
-    margin-top: 10px;
-
-    font-size: 22px;
-
-    font-weight: bold;
-
-    text-align: center;
-}
-
-
-.status {
-
-    padding: 12px;
-
-    border-radius: 8px;
+.total-box {
 
     background: #e8f5e9;
 
-    margin-top: 10px;
+    border-radius: 8px;
+
+    padding: 15px;
+
+    margin-top: 12px;
+
+    text-align: center;
+}
+
+.total-title {
 
     font-size: 17px;
+
+    font-weight: bold;
 }
 
+.total-value {
 
-.scan-box {
-
-    margin-top: 15px;
-}
-
-
-.scan-title {
-
-    font-size: 20px;
+    font-size: 32px;
 
     font-weight: bold;
 
-    margin-bottom: 5px;
+    color: #2e7d32;
+
+    margin-top: 5px;
 }
 
 
-.nav-buttons {
+/* =========================
+   진행 상태
+========================= */
 
-    display: flex;
-
-    gap: 6px;
-
-    margin-top: 10px;
-}
-
-
-.nav-buttons button {
-
-    flex: 1;
-}
-
-
-.hidden {
-
-    display: none !important;
-}
-
-
-/* =================================================
-   날짜 입력
-================================================= */
-
-.date-title {
-
-    font-size: 20px;
-
-    font-weight: bold;
-
-    margin-top: 20px;
-}
-
-
-.date-inputs {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    margin-top: 8px;
-}
-
-
-.date-inputs input {
-
-    margin-top: 0;
+.progress-text {
 
     text-align: center;
 
-    padding: 14px 5px;
-}
-
-
-.date-year {
-
-    flex: 2;
-}
-
-
-.date-month,
-.date-day {
-
-    flex: 1;
-}
-
-
-.date-separator {
-
-    font-size: 24px;
-
     font-weight: bold;
+
+    margin-bottom: 8px;
 }
 
+.progress-bg {
+
+    width: 100%;
+
+    height: 10px;
+
+    background: #ddd;
+
+    border-radius: 5px;
+
+    overflow: hidden;
+}
+
+.progress-bar {
+
+    height: 10px;
+
+    background: #4caf50;
+
+    border-radius: 5px;
+
+    transition: width 0.2s;
+}
+
+
+/* =========================
+   신규 / 업로드
+========================= */
+
+#newItemBox {
+
+    display: none;
+
+    background: white;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    margin-top: 10px;
+}
+
+
+/* =========================
+   자동완성
+========================= */
+
+.autocomplete-items {
+
+    border: 1px solid #ddd;
+
+    max-height: 150px;
+
+    overflow-y: auto;
+
+    background: white;
+}
+
+.autocomplete-items div {
+
+    padding: 10px;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   완료
+========================= */
+
+.complete-box {
+
+    text-align: center;
+
+    padding: 20px;
+}
+
+.complete-box h2 {
+
+    color: #2e7d32;
+}
 
 </style>
 
@@ -313,22 +354,24 @@ button:active {
 
 
 <div class="header">
+
     ourbox 오산센터 재고조사
+
 </div>
 
 
 <!-- =================================================
-     업로드
+     엑셀 업로드
 ================================================= -->
 
-<div id="uploadBox">
+<form
+    id="uploadForm"
+    action="/upload"
+    method="post"
+    enctype="multipart/form-data"
+>
 
-    <form
-        id="uploadForm"
-        action="/upload"
-        method="post"
-        enctype="multipart/form-data"
-    >
+    <div class="card">
 
         <input
             type="file"
@@ -337,45 +380,241 @@ button:active {
             required
         >
 
-
         <button
             type="submit"
-            class="upload-btn"
         >
-            상품마스터 엑셀 업로드
+            엑셀 업로드
         </button>
 
-    </form>
+    </div>
+
+</form>
 
 
-    <p
-        style="
-            font-size:14px;
-            color:#666;
-        "
-    >
-
-        ※ 업로드 엑셀의 시트2<br>
-
-        A열 = 화주사<br>
-
-        B열 = 바코드<br>
-
-        C열 = 입수량<br>
-
-        D열 = 상품명
-
-    </p>
-
-</div>
-
+<!-- =================================================
+     메인
+================================================= -->
 
 <div id="app"></div>
 
 
+<!-- =================================================
+     신규 재고
+================================================= -->
+
+<button
+    id="newItemBtn"
+    onclick="toggleNewItem()"
+    style="display:none;"
+>
+    신규 재고등록
+</button>
+
+
+<div id="newItemBox">
+
+    <input
+        id="new_rack"
+        placeholder="랙 바코드"
+    >
+
+    <input
+        id="new_barcode"
+        placeholder="제품 바코드"
+    >
+
+    <input
+        id="new_exp"
+        placeholder="소비기한"
+    >
+
+    <input
+        id="new_box"
+        placeholder="박스수"
+        inputmode="numeric"
+    >
+
+    <input
+        id="new_each"
+        placeholder="낱개수량"
+        inputmode="numeric"
+    >
+
+    <button
+        onclick="addNewItem()"
+    >
+        등록
+    </button>
+
+    <button
+        onclick="toggleNewItem()"
+        style="background:#999;"
+    >
+        취소
+    </button>
+
+</div>
+
+
 <script>
 
+/* =================================================
+   서버에서 전달받은 데이터
+================================================= */
+
+let data = {{ data|tojson }};
+
 let mapping = {{ mapping|tojson }};
+
+
+/* =================================================
+   현재 위치
+================================================= */
+
+let currentIndex = 0;
+
+
+/* =================================================
+   상품 리스트
+================================================= */
+
+let productList = [];
+
+
+/* =================================================
+   이어하기
+================================================= */
+
+window.onload = function(){
+
+    let saved =
+        localStorage.getItem(
+            "inventoryData"
+        );
+
+    let savedMapping =
+        localStorage.getItem(
+            "mappingData"
+        );
+
+
+    if(savedMapping){
+
+        try {
+
+            mapping =
+                JSON.parse(
+                    savedMapping
+                );
+
+        } catch(e) {
+
+            console.error(e);
+
+        }
+
+    }
+
+
+    if(saved){
+
+        try {
+
+            let savedData =
+                JSON.parse(saved);
+
+
+            if(
+                Array.isArray(savedData)
+                &&
+                savedData.length > 0
+            ){
+
+                if(
+                    confirm(
+                        "이전에 작업한 데이터가 있습니다.\n\n이어하시겠습니까?"
+                    )
+                ){
+
+                    data =
+                        savedData;
+
+                    let savedIndex =
+                        localStorage.getItem(
+                            "currentIndex"
+                        );
+
+                    if(savedIndex){
+
+                        currentIndex =
+                            Number(
+                                savedIndex
+                            );
+
+                    }
+
+                } else {
+
+                    localStorage.removeItem(
+                        "inventoryData"
+                    );
+
+                    localStorage.removeItem(
+                        "currentIndex"
+                    );
+
+                }
+
+            }
+
+        } catch(e){
+
+            console.error(e);
+
+            localStorage.removeItem(
+                "inventoryData"
+            );
+
+        }
+
+    }
+
+
+    if(
+        Array.isArray(mapping)
+        &&
+        mapping.length > 0
+    ){
+
+        localStorage.setItem(
+            "mappingData",
+            JSON.stringify(mapping)
+        );
+
+    }
+
+
+    if(data.length > 0){
+
+        document
+            .getElementById(
+                "uploadForm"
+            )
+            .style.display = "none";
+
+
+        document
+            .getElementById(
+                "newItemBtn"
+            )
+            .style.display = "block";
+
+
+        render();
+
+    }
+
+};
 
 </script>
 
