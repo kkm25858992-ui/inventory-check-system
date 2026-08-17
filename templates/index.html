@@ -24,12 +24,11 @@ body {
 
     font-family: sans-serif;
 
-    margin: 0;
-
     padding: 15px;
 
-    background: #f0f9f4;
+    margin: 0;
 
+    background: #f0f9f4;
 }
 
 
@@ -44,7 +43,6 @@ body {
     color: #2e7d32;
 
     margin-bottom: 15px;
-
 }
 
 
@@ -52,7 +50,7 @@ body {
 
     background: white;
 
-    padding: 20px;
+    padding: 18px;
 
     border-radius: 12px;
 
@@ -60,7 +58,6 @@ body {
 
     box-shadow:
         0 2px 6px rgba(0,0,0,0.08);
-
 }
 
 
@@ -68,7 +65,7 @@ input {
 
     width: 100%;
 
-    padding: 17px;
+    padding: 16px;
 
     font-size: 20px;
 
@@ -81,209 +78,144 @@ input {
 }
 
 
-input:focus {
-
-    outline: none;
-
-    border: 2px solid #4caf50;
-
-}
-
-
 button {
-    width:100%;
-    padding:16px;
-    font-size:18px;
-    margin-top:8px;
-    background:#66bb6a;
-    color:white;
-    border:none;
-    border-radius:8px;
-}
 
-/* 제품확인 / 엑셀 다운로드 / 엑셀 공유 */
-.product-check-btn,
-.download-btn,
-.share-btn {
-    background:#66bb6a;
-    color:white;
-}
+    width: 100%;
 
-    border-radius: 8px;
+    padding: 16px;
+
+    font-size: 18px;
+
+    margin-top: 8px;
 
     background: #66bb6a;
 
     color: white;
 
+    border: none;
+
+    border-radius: 8px;
 }
 
 
 button:active {
 
-    transform: scale(0.98);
+    opacity: 0.7;
+}
+
+
+/* =================================================
+   제품확인 / 다운로드 / 공유
+   같은 색상
+================================================= */
+
+.product-check-btn,
+.download-btn,
+.share-btn {
+
+    background: #66bb6a;
+
+    color: white;
+}
+
+
+/* =================================================
+   랙 확인
+================================================= */
+
+.rack-btn {
+
+    background: #66bb6a;
 
 }
 
 
-.scan-title {
+/* =================================================
+   바코드 확인
+================================================= */
 
-    text-align: center;
+.barcode-btn {
 
-    font-size: 24px;
-
-    font-weight: bold;
-
-    margin-bottom: 10px;
+    background: #66bb6a;
 
 }
 
 
-.scan-message {
+/* =================================================
+   수량 저장
+================================================= */
 
-    text-align: center;
+.save-qty-btn {
 
-    color: #666;
-
-    margin-bottom: 15px;
+    background: #66bb6a;
 
 }
 
 
-.current-rack {
+/* =================================================
+   다음 제품
+================================================= */
 
-    background: #e8f5e9;
+.next-product-btn {
+
+    background: #66bb6a;
+
+}
+
+
+/* =================================================
+   QR
+================================================= */
+
+.qr-btn {
+
+    background: #66bb6a;
+
+}
+
+
+/* =================================================
+   업로드
+================================================= */
+
+.upload-btn {
+
+    background: #66bb6a;
+
+}
+
+
+/* =================================================
+   초기 화면
+================================================= */
+
+#uploadBox {
+
+    background: white;
 
     padding: 15px;
 
-    border-radius: 8px;
-
-    text-align: center;
-
-    margin-bottom: 15px;
-
+    border-radius: 12px;
 }
 
 
-.current-rack-title {
+/* =================================================
+   진행률
+================================================= */
 
-    color: #666;
+.progress-bg {
 
-    font-size: 14px;
-
-}
-
-
-.current-rack-value {
-
-    font-size: 28px;
-
-    font-weight: bold;
-
-    color: #2e7d32;
-
-    margin-top: 5px;
-
-}
-
-
-.info-row {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    padding: 11px 0;
-
-    border-bottom: 1px solid #eee;
-
-    gap: 10px;
-
-}
-
-
-.info-label {
-
-    font-weight: bold;
-
-    color: #555;
-
-}
-
-
-.info-value {
-
-    font-weight: bold;
-
-    text-align: right;
-
-    word-break: break-all;
-
-}
-
-
-.quantity-title {
-
-    font-size: 20px;
-
-    font-weight: bold;
-
-    margin-top: 20px;
-
-}
-
-
-.quantity-result {
-
-    background: #f5f5f5;
-
-    padding: 15px;
-
-    margin-top: 12px;
-
-    border-radius: 8px;
-
-    text-align: center;
-
-}
-
-
-.quantity-result-label {
-
-    color: #666;
-
-}
-
-
-.quantity-result-value {
-
-    font-size: 32px;
-
-    font-weight: bold;
-
-    color: #2e7d32;
-
-    margin-top: 5px;
-
-}
-
-
-.progress-box {
-
-    margin-top: 20px;
-
-}
-
-
-.progress-background {
-
-    background: #ddd;
+    width: 100%;
 
     height: 12px;
 
-    border-radius: 6px;
+    background: #ddd;
+
+    border-radius: 10px;
 
     overflow: hidden;
 
+    margin-top: 8px;
 }
 
 
@@ -293,65 +225,131 @@ button:active {
 
     background: #4caf50;
 
+    border-radius: 10px;
 }
 
 
-.download-button {
+/* =================================================
+   상품정보
+================================================= */
 
-    background: #1976d2;
+.info-row {
 
+    font-size: 18px;
+
+    margin-top: 10px;
 }
 
 
-.share-button {
+.info-label {
 
-    background: #7b1fa2;
-
+    font-weight: bold;
 }
 
 
-.qr-button {
+/* =================================================
+   수량 입력
+================================================= */
 
-    background: #455a64;
+.qty-title {
 
+    font-size: 20px;
+
+    font-weight: bold;
+
+    margin-top: 20px;
 }
 
 
-.gray-button {
+.qty-result {
 
-    background: #777;
-
-}
-
-
-.danger-button {
-
-    background: #e53935;
-
-}
-
-
-#uploadForm {
-
-    background: white;
+    background: #f1f8e9;
 
     padding: 15px;
 
-    border-radius: 12px;
+    border-radius: 8px;
 
+    margin-top: 10px;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    text-align: center;
 }
 
 
-#uploadForm input {
+/* =================================================
+   상태
+================================================= */
 
-    font-size: 16px;
+.status {
 
+    padding: 12px;
+
+    border-radius: 8px;
+
+    background: #e8f5e9;
+
+    margin-top: 10px;
+
+    font-size: 17px;
+}
+
+
+/* =================================================
+   바코드 검색
+================================================= */
+
+.scan-box {
+
+    margin-top: 15px;
+}
+
+
+.scan-title {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    margin-bottom: 5px;
+}
+
+
+/* =================================================
+   네비게이션
+================================================= */
+
+.nav-buttons {
+
+    display: flex;
+
+    gap: 6px;
+
+    margin-top: 10px;
+}
+
+
+.nav-buttons button {
+
+    flex: 1;
+}
+
+
+/* =================================================
+   결과 목록
+================================================= */
+
+.result-list {
+
+    margin-top: 15px;
 }
 
 
 .result-item {
 
-    background: white;
+    background: #fafafa;
 
     padding: 12px;
 
@@ -359,33 +357,39 @@ button:active {
 
     margin-top: 8px;
 
-    border-left: 5px solid #4caf50;
-
+    border-left: 5px solid #66bb6a;
 }
 
 
-.result-item strong {
-
-    font-size: 17px;
-
-}
-
-
-.small-text {
-
-    color: #666;
-
-    font-size: 14px;
-
-    margin-top: 5px;
-
-}
-
+/* =================================================
+   QR
+================================================= */
 
 #qr-box {
 
     margin-top: 15px;
+}
 
+
+#qr-box img {
+
+    width: 250px;
+
+    max-width: 100%;
+
+    display: block;
+
+    margin: auto;
+}
+
+
+/* =================================================
+   숨김
+================================================= */
+
+.hidden {
+
+    display: none !important;
 }
 
 </style>
@@ -397,161 +401,63 @@ button:active {
 
 
 <div class="header">
-
     ourbox 오산센터 재고조사
+</div>
+
+
+<!-- =================================================
+     엑셀 업로드
+================================================= -->
+
+<div id="uploadBox">
+
+    <form
+        id="uploadForm"
+        action="/upload"
+        method="post"
+        enctype="multipart/form-data"
+    >
+
+        <input
+            type="file"
+            name="file"
+            accept=".xlsx,.xls,.csv"
+            required
+        >
+
+        <button
+            type="submit"
+            class="upload-btn"
+        >
+            상품마스터 엑셀 업로드
+        </button>
+
+    </form>
+
+
+    <p style="font-size:14px;color:#666;">
+
+        ※ 업로드 엑셀의 시트2는<br>
+        A열 = 화주사<br>
+        B열 = 바코드<br>
+        C열 = 입수량<br>
+        D열 = 상품명
+
+    </p>
 
 </div>
 
 
-<!-- =====================================================
-     엑셀 업로드
-====================================================== -->
-
-<form
-    id="uploadForm"
-    action="/upload"
-    method="post"
-    enctype="multipart/form-data"
->
-
-    <input
-        type="file"
-        name="file"
-        accept=".xlsx,.xls"
-        required
-    >
-
-
-    <button type="submit">
-
-        재고조사 엑셀 업로드
-
-    </button>
-
-</form>
-
-
-<!-- =====================================================
+<!-- =================================================
      메인
-====================================================== -->
+================================================= -->
 
 <div id="app"></div>
 
 
 <script>
 
-let data = {{ data|tojson }};
-
-let masterData = {{ master_data|tojson }};
-
-let currentRack = "";
-
-let currentProduct = null;
-
-let completedCount = 0;
-
-
-/* =====================================================
-   페이지 시작
-===================================================== */
-
-window.onload = function(){
-
-    /*
-        기존 작업 이어하기
-    */
-
-    const savedInventory =
-        localStorage.getItem(
-            "inventoryData"
-        );
-
-
-    const savedMaster =
-        localStorage.getItem(
-            "inventoryMasterData"
-        );
-
-
-    if(savedInventory){
-
-        try{
-
-            const saved =
-                JSON.parse(
-                    savedInventory
-                );
-
-
-            if(
-                Array.isArray(saved) &&
-                saved.length > 0
-            ){
-
-                const continueWork =
-                    confirm(
-                        "이전에 작업한 재고조사 데이터가 있습니다.\n\n" +
-                        "이어서 작업하시겠습니까?"
-                    );
-
-
-                if(continueWork){
-
-                    data = saved;
-
-
-                    if(savedMaster){
-
-                        masterData =
-                            JSON.parse(
-                                savedMaster
-                            );
-
-                    }
-
-                }else{
-
-                    localStorage.removeItem(
-                        "inventoryData"
-                    );
-
-                    localStorage.removeItem(
-                        "inventoryMasterData"
-                    );
-
-                }
-
-            }
-
-        }catch(error){
-
-            console.error(
-                error
-            );
-
-        }
-
-    }
-
-
-    if(
-        masterData.length > 0
-    ){
-
-        document
-            .getElementById(
-                "uploadForm"
-            )
-            .style.display =
-                "none";
-
-        saveLocal();
-
-        render();
-
-    }
-
-};
+let mapping = {{ mapping|tojson }};
 
 </script>
 
