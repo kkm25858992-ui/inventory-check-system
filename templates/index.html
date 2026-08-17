@@ -12,11 +12,13 @@
 
 <title>ourbox 오산센터 재고조사</title>
 
+
 <style>
 
 * {
     box-sizing: border-box;
 }
+
 
 body {
 
@@ -25,17 +27,14 @@ body {
         "Malgun Gothic",
         sans-serif;
 
-    padding: 15px;
-
     margin: 0;
 
+    padding: 15px;
+
     background: #f0f9f4;
+
 }
 
-
-/* =========================
-   헤더
-========================= */
 
 .header {
 
@@ -48,37 +47,32 @@ body {
     color: #2e7d32;
 
     margin-bottom: 15px;
+
 }
 
-
-/* =========================
-   카드
-========================= */
 
 .card {
 
     background: white;
 
-    padding: 20px;
+    padding: 18px;
 
     border-radius: 12px;
 
     margin-top: 10px;
 
     box-shadow:
-        0 2px 8px rgba(0,0,0,0.08);
+        0 2px 8px
+        rgba(0,0,0,0.08);
+
 }
 
-
-/* =========================
-   입력창
-========================= */
 
 input {
 
     width: 100%;
 
-    padding: 16px;
+    padding: 15px;
 
     font-size: 20px;
 
@@ -88,27 +82,23 @@ input {
 
     border-radius: 8px;
 
-    outline: none;
 }
+
 
 input:focus {
 
+    outline: 3px solid #a5d6a7;
+
     border-color: #4caf50;
 
-    box-shadow:
-        0 0 0 2px rgba(76,175,80,0.15);
 }
 
-
-/* =========================
-   버튼
-========================= */
 
 button {
 
     width: 100%;
 
-    padding: 16px;
+    padding: 15px;
 
     font-size: 18px;
 
@@ -123,147 +113,93 @@ button {
     border-radius: 8px;
 
     font-weight: bold;
+
 }
+
 
 button:active {
 
     transform: scale(0.98);
+
 }
 
 
-/* =========================
-   제품 확인 버튼
-========================= */
-
-.product-button {
+.green-button {
 
     background: #66bb6a;
+
 }
 
 
-/* =========================
-   다운로드 / 공유
-========================= */
+.red-button {
 
-.download-button {
+    background: #ef5350;
 
-    background: #66bb6a;
-}
-
-.share-button {
-
-    background: #66bb6a;
 }
 
 
-/* =========================
-   현재 단계
-========================= */
+.gray-button {
 
-.step-title {
+    background: #78909c;
 
-    font-size: 23px;
+}
+
+
+.scan-label {
+
+    display: block;
+
+    margin-top: 15px;
+
+    font-size: 15px;
 
     font-weight: bold;
 
-    margin-bottom: 10px;
+    color: #555;
 
-    text-align: center;
 }
 
-
-/* =========================
-   제품정보
-========================= */
 
 .info-box {
 
     background: #f5f5f5;
 
-    border-radius: 8px;
-
     padding: 12px;
 
+    border-radius: 8px;
+
     margin-top: 10px;
+
 }
+
 
 .info-row {
 
-    display: flex;
+    padding: 5px 0;
 
-    justify-content: space-between;
-
-    padding: 7px 0;
-
-    border-bottom: 1px solid #ddd;
 }
 
-.info-row:last-child {
 
-    border-bottom: none;
-}
+.big-number {
 
-.info-label {
+    font-size: 28px;
 
     font-weight: bold;
-}
 
-.info-value {
+    text-align: center;
 
-    text-align: right;
-}
-
-
-/* =========================
-   수량 계산
-========================= */
-
-.total-box {
-
-    background: #e8f5e9;
-
-    border-radius: 8px;
+    margin-top: 15px;
 
     padding: 15px;
 
-    margin-top: 12px;
+    background: #e8f5e9;
 
-    text-align: center;
-}
+    border-radius: 10px;
 
-.total-title {
-
-    font-size: 17px;
-
-    font-weight: bold;
-}
-
-.total-value {
-
-    font-size: 32px;
-
-    font-weight: bold;
-
-    color: #2e7d32;
-
-    margin-top: 5px;
 }
 
 
-/* =========================
-   진행 상태
-========================= */
-
-.progress-text {
-
-    text-align: center;
-
-    font-weight: bold;
-
-    margin-bottom: 8px;
-}
-
-.progress-bg {
+.progress {
 
     width: 100%;
 
@@ -274,7 +210,9 @@ button:active {
     border-radius: 5px;
 
     overflow: hidden;
+
 }
+
 
 .progress-bar {
 
@@ -282,19 +220,33 @@ button:active {
 
     background: #4caf50;
 
-    border-radius: 5px;
-
-    transition: width 0.2s;
 }
 
 
-/* =========================
-   신규 / 업로드
-========================= */
+.button-row {
 
-#newItemBox {
+    display: flex;
 
-    display: none;
+    gap: 8px;
+
+}
+
+
+.button-row button {
+
+    flex: 1;
+
+}
+
+
+.hidden {
+
+    display: none !important;
+
+}
+
+
+.upload-box {
 
     background: white;
 
@@ -303,47 +255,55 @@ button:active {
     border-radius: 12px;
 
     margin-top: 10px;
+
 }
 
 
-/* =========================
-   자동완성
-========================= */
+.file-input {
 
-.autocomplete-items {
+    font-size: 16px;
 
-    border: 1px solid #ddd;
-
-    max-height: 150px;
-
-    overflow-y: auto;
-
-    background: white;
-}
-
-.autocomplete-items div {
-
-    padding: 10px;
-
-    cursor: pointer;
 }
 
 
-/* =========================
-   완료
-========================= */
+.status {
 
-.complete-box {
+    margin-top: 10px;
 
-    text-align: center;
+    padding: 12px;
 
-    padding: 20px;
+    border-radius: 8px;
+
+    background: #e8f5e9;
+
+    font-weight: bold;
+
 }
 
-.complete-box h2 {
 
-    color: #2e7d32;
+.result-card {
+
+    background: #e8f5e9;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
 }
+
+
+.qty-title {
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    margin-top: 15px;
+
+}
+
 
 </style>
 
@@ -360,266 +320,124 @@ button:active {
 </div>
 
 
-<!-- =================================================
+<!-- =====================================================
      엑셀 업로드
-================================================= -->
+====================================================== -->
 
-<form
-    id="uploadForm"
-    action="/upload"
-    method="post"
-    enctype="multipart/form-data"
+<div
+    id="uploadBox"
+    class="upload-box"
 >
 
-    <div class="card">
+    <form
+        id="uploadForm"
+        action="/upload"
+        method="post"
+        enctype="multipart/form-data"
+    >
+
+        <label>
+
+            <b>
+                재고조사 엑셀 업로드
+            </b>
+
+        </label>
+
 
         <input
+            class="file-input"
             type="file"
             name="file"
             accept=".xlsx,.xls,.csv"
             required
         >
 
+
         <button
             type="submit"
+            class="green-button"
         >
+
             엑셀 업로드
+
         </button>
 
-    </div>
-
-</form>
+    </form>
 
 
-<!-- =================================================
+    <div
+        id="uploadStatus"
+        class="status hidden"
+    ></div>
+
+</div>
+
+
+<!-- =====================================================
      메인
-================================================= -->
+====================================================== -->
 
-<div id="app"></div>
+<div
+    id="app"
+></div>
 
 
-<!-- =================================================
-     신규 재고
-================================================= -->
+<!-- =====================================================
+     조사 완료 버튼
+====================================================== -->
 
-<button
-    id="newItemBtn"
-    onclick="toggleNewItem()"
-    style="display:none;"
+<div
+    id="completeBox"
+    class="card hidden"
 >
-    신규 재고등록
-</button>
-
-
-<div id="newItemBox">
-
-    <input
-        id="new_rack"
-        placeholder="랙 바코드"
-    >
-
-    <input
-        id="new_barcode"
-        placeholder="제품 바코드"
-    >
-
-    <input
-        id="new_exp"
-        placeholder="소비기한"
-    >
-
-    <input
-        id="new_box"
-        placeholder="박스수"
-        inputmode="numeric"
-    >
-
-    <input
-        id="new_each"
-        placeholder="낱개수량"
-        inputmode="numeric"
-    >
 
     <button
-        onclick="addNewItem()"
+        id="downloadBtn"
+        class="green-button"
+        onclick="download()"
     >
-        등록
+        엑셀 다운로드
     </button>
 
+
     <button
-        onclick="toggleNewItem()"
-        style="background:#999;"
+        id="shareBtn"
+        class="green-button"
+        onclick="share()"
     >
-        취소
+        엑셀 공유
+    </button>
+
+
+    <button
+        class="green-button"
+        onclick="createQR()"
+    >
+        QR코드 생성
     </button>
 
 </div>
 
 
+<!-- =====================================================
+     외부 JS
+====================================================== -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
 <script>
 
-/* =================================================
-   서버에서 전달받은 데이터
-================================================= */
-
-let data = {{ data|tojson }};
-
-let mapping = {{ mapping|tojson }};
+window.INITIAL_DATA =
+    {{ data | tojson }};
 
 
-/* =================================================
-   현재 위치
-================================================= */
+window.INITIAL_LOOKUP =
+    {{ lookup | tojson }};
 
-let currentIndex = 0;
-
-
-/* =================================================
-   상품 리스트
-================================================= */
-
-let productList = [];
-
-
-/* =================================================
-   이어하기
-================================================= */
-
-window.onload = function(){
-
-    let saved =
-        localStorage.getItem(
-            "inventoryData"
-        );
-
-    let savedMapping =
-        localStorage.getItem(
-            "mappingData"
-        );
-
-
-    if(savedMapping){
-
-        try {
-
-            mapping =
-                JSON.parse(
-                    savedMapping
-                );
-
-        } catch(e) {
-
-            console.error(e);
-
-        }
-
-    }
-
-
-    if(saved){
-
-        try {
-
-            let savedData =
-                JSON.parse(saved);
-
-
-            if(
-                Array.isArray(savedData)
-                &&
-                savedData.length > 0
-            ){
-
-                if(
-                    confirm(
-                        "이전에 작업한 데이터가 있습니다.\n\n이어하시겠습니까?"
-                    )
-                ){
-
-                    data =
-                        savedData;
-
-                    let savedIndex =
-                        localStorage.getItem(
-                            "currentIndex"
-                        );
-
-                    if(savedIndex){
-
-                        currentIndex =
-                            Number(
-                                savedIndex
-                            );
-
-                    }
-
-                } else {
-
-                    localStorage.removeItem(
-                        "inventoryData"
-                    );
-
-                    localStorage.removeItem(
-                        "currentIndex"
-                    );
-
-                }
-
-            }
-
-        } catch(e){
-
-            console.error(e);
-
-            localStorage.removeItem(
-                "inventoryData"
-            );
-
-        }
-
-    }
-
-
-    if(
-        Array.isArray(mapping)
-        &&
-        mapping.length > 0
-    ){
-
-        localStorage.setItem(
-            "mappingData",
-            JSON.stringify(mapping)
-        );
-
-    }
-
-
-    if(data.length > 0){
-
-        document
-            .getElementById(
-                "uploadForm"
-            )
-            .style.display = "none";
-
-
-        document
-            .getElementById(
-                "newItemBtn"
-            )
-            .style.display = "block";
-
-
-        render();
-
-    }
-
-};
 
 </script>
-
-
-<script src="/static/script.js"></script>
 
 
 </body>
