@@ -1,191 +1,769 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
+
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+>
+
 <title>ourbox 오산센터 재고조사</title>
 
+
 <style>
-body { font-family:sans-serif; padding:20px; background:#f0f9f4; }
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    font-family: sans-serif;
+
+    padding: 15px;
+
+    margin: 0;
+
+    background: #f0f9f4;
+
+}
+
+
+/* =================================================
+   헤더
+================================================= */
 
 .header {
-    text-align:center;
-    font-size:26px;
-    font-weight:bold;
-    color:#2e7d32;
+
+    text-align: center;
+
+    font-size: 25px;
+
+    font-weight: bold;
+
+    color: #2e7d32;
+
+    margin-bottom: 15px;
+
 }
+
+
+/* =================================================
+   카드
+================================================= */
 
 .card {
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    margin-top:10px;
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    margin-top: 10px;
+
+    box-shadow:
+        0 2px 6px rgba(0,0,0,0.08);
+
 }
+
+
+/* =================================================
+   입력창
+================================================= */
 
 input {
-    width:100%;
-    padding:16px;
-    font-size:20px;
-    margin-top:8px;
+
+    width: 100%;
+
+    padding: 17px;
+
+    font-size: 21px;
+
+    margin-top: 8px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 8px;
+
 }
+
+
+input:focus {
+
+    outline: none;
+
+    border: 2px solid #4caf50;
+
+}
+
+
+/* =================================================
+   버튼
+================================================= */
 
 button {
-    width:100%;
-    padding:16px;
-    font-size:18px;
-    margin-top:8px;
-    background:#66bb6a;
-    color:white;
-    border:none;
+
+    width: 100%;
+
+    padding: 17px;
+
+    font-size: 19px;
+
+    margin-top: 8px;
+
+    background: #66bb6a;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 8px;
+
 }
 
-.nav-buttons {
-    display:flex;
-    gap:6px;
-}
-.nav-buttons button { flex:1; }
 
-/* 신규 입력 UI */
+button:active {
+
+    transform: scale(0.98);
+
+}
+
+
+/* =================================================
+   스캔 안내
+================================================= */
+
+.scan-title {
+
+    text-align: center;
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    margin-bottom: 15px;
+
+}
+
+
+.scan-message {
+
+    text-align: center;
+
+    font-size: 18px;
+
+    color: #555;
+
+    margin-bottom: 15px;
+
+}
+
+
+/* =================================================
+   현재 랙
+================================================= */
+
+.current-rack {
+
+    background: #e8f5e9;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    text-align: center;
+
+    margin-bottom: 10px;
+
+}
+
+
+.current-rack-title {
+
+    font-size: 16px;
+
+    color: #555;
+
+}
+
+
+.current-rack-value {
+
+    font-size: 28px;
+
+    font-weight: bold;
+
+    color: #2e7d32;
+
+    margin-top: 5px;
+
+}
+
+
+/* =================================================
+   상품 정보
+================================================= */
+
+.product-info {
+
+    margin-top: 15px;
+
+}
+
+
+.info-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid #eee;
+
+}
+
+
+.info-label {
+
+    font-weight: bold;
+
+    color: #555;
+
+}
+
+
+.info-value {
+
+    font-weight: bold;
+
+    text-align: right;
+
+    max-width: 65%;
+
+    word-break: break-all;
+
+}
+
+
+/* =================================================
+   수량 영역
+================================================= */
+
+.quantity-title {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    margin-top: 20px;
+
+}
+
+
+.quantity-result {
+
+    background: #f5f5f5;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    margin-top: 10px;
+
+    text-align: center;
+
+}
+
+
+.quantity-result-label {
+
+    font-size: 15px;
+
+    color: #666;
+
+}
+
+
+.quantity-result-value {
+
+    font-size: 32px;
+
+    font-weight: bold;
+
+    color: #2e7d32;
+
+    margin-top: 5px;
+
+}
+
+
+/* =================================================
+   진행상황
+================================================= */
+
+.progress-box {
+
+    margin-top: 15px;
+
+}
+
+
+.progress-background {
+
+    background: #ddd;
+
+    height: 12px;
+
+    border-radius: 6px;
+
+    overflow: hidden;
+
+}
+
+
+.progress-bar {
+
+    height: 12px;
+
+    background: #4caf50;
+
+}
+
+
+/* =================================================
+   조사 완료 목록
+================================================= */
+
+.result-list {
+
+    margin-top: 15px;
+
+}
+
+
+.result-item {
+
+    background: white;
+
+    padding: 12px;
+
+    margin-top: 8px;
+
+    border-radius: 8px;
+
+    border-left: 5px solid #4caf50;
+
+}
+
+
+.result-item-barcode {
+
+    font-weight: bold;
+
+    font-size: 17px;
+
+}
+
+
+.result-item-info {
+
+    margin-top: 5px;
+
+    color: #555;
+
+    font-size: 14px;
+
+}
+
+
+/* =================================================
+   다운로드 버튼
+================================================= */
+
+.download-button {
+
+    background: #1976d2;
+
+}
+
+
+.share-button {
+
+    background: #7b1fa2;
+
+}
+
+
+.qr-button {
+
+    background: #455a64;
+
+}
+
+
+/* =================================================
+   신규 재고
+================================================= */
+
 #newItemBox {
-    display:none;
-    background:white;
-    padding:15px;
-    border-radius:12px;
-    margin-top:10px;
+
+    display: none;
+
+    background: white;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    margin-top: 10px;
+
 }
 
-/* 자동완성 */
-.autocomplete-items {
-    border:1px solid #ddd;
-    max-height:150px;
-    overflow-y:auto;
-    background:white;
+
+/* =================================================
+   업로드
+================================================= */
+
+#uploadForm {
+
+    background: white;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
 }
-.autocomplete-items div {
-    padding:10px;
-    cursor:pointer;
+
+
+#uploadForm input {
+
+    font-size: 16px;
+
 }
-.autocomplete-items div:hover {
-    background:#e0f2f1;
+
+
+/* =================================================
+   QR
+================================================= */
+
+#qr-box {
+
+    margin-top: 15px;
+
 }
+
+
+/* =================================================
+   숨김
+================================================= */
+
+.hidden {
+
+    display: none !important;
+
+}
+
 </style>
+
 </head>
+
 
 <body>
 
-<div class="header">ourbox 오산센터 재고조사</div>
 
-<!-- 업로드 -->
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <button type="submit">엑셀 업로드</button>
-</form>
+<!-- =================================================
+     헤더
+================================================= -->
 
-<!-- 메인 -->
-<div id="app"></div>
+<div class="header">
 
-<!-- 신규 재고 버튼 -->
-<button id="newItemBtn" onclick="toggleNewItem()" style="display:none;">
-    신규 재고등록
-</button>
+    ourbox 오산센터 재고조사
 
-<!-- 신규 입력 -->
-<div id="newItemBox">
-    <input id="new_location" placeholder="로케이션">
-    <input id="new_name" placeholder="상품명">
-    <div id="autocomplete-box" class="autocomplete-items"></div>
-    <input id="new_exp" placeholder="소비기한">
-    <input id="new_lot" placeholder="로트번호">
-    <input id="new_qty" placeholder="재고수량" inputmode="numeric">
-
-    <button onclick="addNewItem()">확인</button>
-    <button onclick="toggleNewItem()">취소</button>
 </div>
 
-<script>
-let data = {{ data|tojson }};
-let currentIndex = 0;
-let productList = [];
 
-/* =========================
-   이어하기 기능
-========================= */
+<!-- =================================================
+     엑셀 업로드
+================================================= -->
+
+<form
+    id="uploadForm"
+    action="/upload"
+    method="post"
+    enctype="multipart/form-data"
+>
+
+    <input
+        type="file"
+        name="file"
+        accept=".xlsx,.xls,.csv"
+        required
+    >
+
+    <button type="submit">
+
+        재고조사 엑셀 업로드
+
+    </button>
+
+</form>
+
+
+<!-- =================================================
+     메인 앱
+================================================= -->
+
+<div id="app"></div>
+
+
+<!-- =================================================
+     신규 재고 버튼
+================================================= -->
+
+<button
+    id="newItemBtn"
+    onclick="toggleNewItem()"
+    style="display:none;"
+>
+
+    신규 재고등록
+
+</button>
+
+
+<!-- =================================================
+     신규 재고 입력
+================================================= -->
+
+<div id="newItemBox">
+
+    <h3>
+        신규 재고등록
+    </h3>
+
+
+    <input
+        id="new_location"
+        placeholder="랙"
+    >
+
+
+    <input
+        id="new_barcode"
+        placeholder="제품 바코드"
+        inputmode="numeric"
+    >
+
+
+    <input
+        id="new_exp"
+        placeholder="소비기한"
+    >
+
+
+    <input
+        id="new_qty"
+        placeholder="수량"
+        inputmode="numeric"
+    >
+
+
+    <button
+        onclick="addNewItem()"
+    >
+
+        등록
+
+    </button>
+
+
+    <button
+        onclick="toggleNewItem()"
+        style="background:#777;"
+    >
+
+        취소
+
+    </button>
+
+</div>
+
+
+<!-- =================================================
+     서버 데이터
+================================================= -->
+
+<script>
+
+let data = {{ data|tojson }};
+
+let currentIndex = 0;
+
+
+/* 현재 선택된 랙 */
+
+let currentRack = "";
+
+
+/* 현재 스캔한 상품 */
+
+let currentProduct = null;
+
+
+/* 조사 완료 개수 */
+
+let completedCount = 0;
+
+
+/* =================================================
+   페이지 시작
+================================================= */
+
 window.onload = function(){
-    let saved = localStorage.getItem("inventoryData");
+
+    let saved =
+        localStorage.getItem(
+            "inventoryData"
+        );
+
 
     if(saved){
-        if(confirm("이전에 작업한 데이터가 있습니다.\n이어하시겠습니까?")){
-            data = JSON.parse(saved);
 
-            let savedIndex = localStorage.getItem("currentIndex");
-            if(savedIndex){
-                currentIndex = Number(savedIndex);
+        if(
+            confirm(
+                "이전에 작업한 데이터가 있습니다.\n\n" +
+                "이어서 작업하시겠습니까?"
+            )
+        ){
+
+            try{
+
+                data =
+                    JSON.parse(saved);
+
+            }catch(e){
+
+                localStorage.removeItem(
+                    "inventoryData"
+                );
+
             }
+
         }else{
-            localStorage.removeItem("inventoryData");
-            localStorage.removeItem("currentIndex");
+
+            localStorage.removeItem(
+                "inventoryData"
+            );
+
+            localStorage.removeItem(
+                "currentIndex"
+            );
+
         }
+
     }
+
 
     if(data.length > 0){
-        document.getElementById('uploadForm').style.display = 'none';
-        document.getElementById('newItemBtn').style.display = 'block';
 
-        initProductList();
+        document
+            .getElementById(
+                "uploadForm"
+            )
+            .style.display = "none";
+
+
+        document
+            .getElementById(
+                "newItemBtn"
+            )
+            .style.display = "block";
+
+
+        updateCompletedCount();
+
+
         render();
+
     }
+
 };
 
-/* =========================
-   상품 리스트 생성
-========================= */
-function initProductList(){
-    productList = [...new Set(data.map(d => d["상품명"]))];
+
+/* =================================================
+   완료 개수
+================================================= */
+
+function updateCompletedCount(){
+
+    completedCount =
+        data.filter(
+            item =>
+                item["조사완료"] === true
+        ).length;
+
 }
 
-/* =========================
-   자동완성
-========================= */
-function autocomplete(){
-    const input = document.getElementById("new_name");
-    const box = document.getElementById("autocomplete-box");
 
-    input.addEventListener("input", function(){
-        box.innerHTML = "";
-        let val = this.value.toLowerCase();
+/* =================================================
+   기존 저장 데이터
+================================================= */
 
-        productList.forEach(item => {
-            if(item.toLowerCase().includes(val)){
-                let div = document.createElement("div");
-                div.innerText = item;
+function saveLocal(){
 
-                div.onclick = function(){
-                    input.value = item;
-                    box.innerHTML = "";
-                };
+    localStorage.setItem(
+        "inventoryData",
+        JSON.stringify(data)
+    );
 
-                box.appendChild(div);
-            }
-        });
-    });
 }
 
-/* =========================
-   신규 입력 UI 토글
-========================= */
+
+/* =================================================
+   신규 재고 UI
+================================================= */
+
 function toggleNewItem(){
-    const box = document.getElementById('newItemBox');
 
-    if(box.style.display === 'none'){
-        box.style.display = 'block';
-        autocomplete();
+    const box =
+        document.getElementById(
+            "newItemBox"
+        );
+
+
+    if(
+        box.style.display === "none" ||
+        box.style.display === ""
+    ){
+
+        box.style.display =
+            "block";
+
     }else{
-        box.style.display = 'none';
+
+        box.style.display =
+            "none";
+
     }
+
 }
+
 </script>
 
-<!-- 외부 JS -->
+
+<!-- =================================================
+     외부 JS
+================================================= -->
+
 <script src="/static/script.js"></script>
 
+
 </body>
+
 </html>
