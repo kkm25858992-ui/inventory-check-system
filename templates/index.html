@@ -24,18 +24,14 @@ body {
 
     font-family: sans-serif;
 
-    padding: 15px;
-
     margin: 0;
+
+    padding: 15px;
 
     background: #f0f9f4;
 
 }
 
-
-/* =================================================
-   헤더
-================================================= */
 
 .header {
 
@@ -51,10 +47,6 @@ body {
 
 }
 
-
-/* =================================================
-   카드
-================================================= */
 
 .card {
 
@@ -72,17 +64,13 @@ body {
 }
 
 
-/* =================================================
-   입력창
-================================================= */
-
 input {
 
     width: 100%;
 
     padding: 17px;
 
-    font-size: 21px;
+    font-size: 20px;
 
     margin-top: 8px;
 
@@ -102,27 +90,23 @@ input:focus {
 }
 
 
-/* =================================================
-   버튼
-================================================= */
-
 button {
 
     width: 100%;
 
     padding: 17px;
 
-    font-size: 19px;
+    font-size: 18px;
 
     margin-top: 8px;
-
-    background: #66bb6a;
-
-    color: white;
 
     border: none;
 
     border-radius: 8px;
+
+    background: #66bb6a;
+
+    color: white;
 
 }
 
@@ -134,10 +118,6 @@ button:active {
 }
 
 
-/* =================================================
-   스캔 안내
-================================================= */
-
 .scan-title {
 
     text-align: center;
@@ -146,7 +126,7 @@ button:active {
 
     font-weight: bold;
 
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 
 }
 
@@ -155,18 +135,12 @@ button:active {
 
     text-align: center;
 
-    font-size: 18px;
-
-    color: #555;
+    color: #666;
 
     margin-bottom: 15px;
 
 }
 
-
-/* =================================================
-   현재 랙
-================================================= */
 
 .current-rack {
 
@@ -178,16 +152,16 @@ button:active {
 
     text-align: center;
 
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 
 }
 
 
 .current-rack-title {
 
-    font-size: 16px;
+    color: #666;
 
-    color: #555;
+    font-size: 14px;
 
 }
 
@@ -205,26 +179,17 @@ button:active {
 }
 
 
-/* =================================================
-   상품 정보
-================================================= */
-
-.product-info {
-
-    margin-top: 15px;
-
-}
-
-
 .info-row {
 
     display: flex;
 
     justify-content: space-between;
 
-    padding: 10px 0;
+    padding: 11px 0;
 
     border-bottom: 1px solid #eee;
+
+    gap: 10px;
 
 }
 
@@ -244,16 +209,10 @@ button:active {
 
     text-align: right;
 
-    max-width: 65%;
-
     word-break: break-all;
 
 }
 
-
-/* =================================================
-   수량 영역
-================================================= */
 
 .quantity-title {
 
@@ -272,9 +231,9 @@ button:active {
 
     padding: 15px;
 
-    border-radius: 8px;
+    margin-top: 12px;
 
-    margin-top: 10px;
+    border-radius: 8px;
 
     text-align: center;
 
@@ -282,8 +241,6 @@ button:active {
 
 
 .quantity-result-label {
-
-    font-size: 15px;
 
     color: #666;
 
@@ -303,13 +260,9 @@ button:active {
 }
 
 
-/* =================================================
-   진행상황
-================================================= */
-
 .progress-box {
 
-    margin-top: 15px;
+    margin-top: 20px;
 
 }
 
@@ -336,56 +289,6 @@ button:active {
 }
 
 
-/* =================================================
-   조사 완료 목록
-================================================= */
-
-.result-list {
-
-    margin-top: 15px;
-
-}
-
-
-.result-item {
-
-    background: white;
-
-    padding: 12px;
-
-    margin-top: 8px;
-
-    border-radius: 8px;
-
-    border-left: 5px solid #4caf50;
-
-}
-
-
-.result-item-barcode {
-
-    font-weight: bold;
-
-    font-size: 17px;
-
-}
-
-
-.result-item-info {
-
-    margin-top: 5px;
-
-    color: #555;
-
-    font-size: 14px;
-
-}
-
-
-/* =================================================
-   다운로드 버튼
-================================================= */
-
 .download-button {
 
     background: #1976d2;
@@ -407,28 +310,19 @@ button:active {
 }
 
 
-/* =================================================
-   신규 재고
-================================================= */
+.gray-button {
 
-#newItemBox {
-
-    display: none;
-
-    background: white;
-
-    padding: 15px;
-
-    border-radius: 12px;
-
-    margin-top: 10px;
+    background: #777;
 
 }
 
 
-/* =================================================
-   업로드
-================================================= */
+.danger-button {
+
+    background: #e53935;
+
+}
+
 
 #uploadForm {
 
@@ -448,24 +342,42 @@ button:active {
 }
 
 
-/* =================================================
-   QR
-================================================= */
+.result-item {
 
-#qr-box {
+    background: white;
 
-    margin-top: 15px;
+    padding: 12px;
+
+    border-radius: 8px;
+
+    margin-top: 8px;
+
+    border-left: 5px solid #4caf50;
 
 }
 
 
-/* =================================================
-   숨김
-================================================= */
+.result-item strong {
 
-.hidden {
+    font-size: 17px;
 
-    display: none !important;
+}
+
+
+.small-text {
+
+    color: #666;
+
+    font-size: 14px;
+
+    margin-top: 5px;
+
+}
+
+
+#qr-box {
+
+    margin-top: 15px;
 
 }
 
@@ -477,10 +389,6 @@ button:active {
 <body>
 
 
-<!-- =================================================
-     헤더
-================================================= -->
-
 <div class="header">
 
     ourbox 오산센터 재고조사
@@ -488,9 +396,9 @@ button:active {
 </div>
 
 
-<!-- =================================================
+<!-- =====================================================
      엑셀 업로드
-================================================= -->
+====================================================== -->
 
 <form
     id="uploadForm"
@@ -502,9 +410,10 @@ button:active {
     <input
         type="file"
         name="file"
-        accept=".xlsx,.xls,.csv"
+        accept=".xlsx,.xls"
         required
     >
+
 
     <button type="submit">
 
@@ -515,154 +424,102 @@ button:active {
 </form>
 
 
-<!-- =================================================
-     메인 앱
-================================================= -->
+<!-- =====================================================
+     메인
+====================================================== -->
 
 <div id="app"></div>
 
-
-<!-- =================================================
-     신규 재고 버튼
-================================================= -->
-
-<button
-    id="newItemBtn"
-    onclick="toggleNewItem()"
-    style="display:none;"
->
-
-    신규 재고등록
-
-</button>
-
-
-<!-- =================================================
-     신규 재고 입력
-================================================= -->
-
-<div id="newItemBox">
-
-    <h3>
-        신규 재고등록
-    </h3>
-
-
-    <input
-        id="new_location"
-        placeholder="랙"
-    >
-
-
-    <input
-        id="new_barcode"
-        placeholder="제품 바코드"
-        inputmode="numeric"
-    >
-
-
-    <input
-        id="new_exp"
-        placeholder="소비기한"
-    >
-
-
-    <input
-        id="new_qty"
-        placeholder="수량"
-        inputmode="numeric"
-    >
-
-
-    <button
-        onclick="addNewItem()"
-    >
-
-        등록
-
-    </button>
-
-
-    <button
-        onclick="toggleNewItem()"
-        style="background:#777;"
-    >
-
-        취소
-
-    </button>
-
-</div>
-
-
-<!-- =================================================
-     서버 데이터
-================================================= -->
 
 <script>
 
 let data = {{ data|tojson }};
 
-let currentIndex = 0;
-
-
-/* 현재 선택된 랙 */
+let masterData = {{ master_data|tojson }};
 
 let currentRack = "";
 
-
-/* 현재 스캔한 상품 */
-
 let currentProduct = null;
-
-
-/* 조사 완료 개수 */
 
 let completedCount = 0;
 
 
-/* =================================================
+/* =====================================================
    페이지 시작
-================================================= */
+===================================================== */
 
 window.onload = function(){
 
-    let saved =
+    /*
+        기존 작업 이어하기
+    */
+
+    const savedInventory =
         localStorage.getItem(
             "inventoryData"
         );
 
 
-    if(saved){
+    const savedMaster =
+        localStorage.getItem(
+            "inventoryMasterData"
+        );
 
-        if(
-            confirm(
-                "이전에 작업한 데이터가 있습니다.\n\n" +
-                "이어서 작업하시겠습니까?"
-            )
-        ){
 
-            try{
+    if(savedInventory){
 
-                data =
-                    JSON.parse(saved);
+        try{
 
-            }catch(e){
-
-                localStorage.removeItem(
-                    "inventoryData"
+            const saved =
+                JSON.parse(
+                    savedInventory
                 );
+
+
+            if(
+                Array.isArray(saved) &&
+                saved.length > 0
+            ){
+
+                const continueWork =
+                    confirm(
+                        "이전에 작업한 재고조사 데이터가 있습니다.\n\n" +
+                        "이어서 작업하시겠습니까?"
+                    );
+
+
+                if(continueWork){
+
+                    data = saved;
+
+
+                    if(savedMaster){
+
+                        masterData =
+                            JSON.parse(
+                                savedMaster
+                            );
+
+                    }
+
+                }else{
+
+                    localStorage.removeItem(
+                        "inventoryData"
+                    );
+
+                    localStorage.removeItem(
+                        "inventoryMasterData"
+                    );
+
+                }
 
             }
 
-        }else{
+        }catch(error){
 
-            localStorage.removeItem(
-                "inventoryData"
-            );
-
-            localStorage.removeItem(
-                "currentIndex"
+            console.error(
+                error
             );
 
         }
@@ -670,24 +527,18 @@ window.onload = function(){
     }
 
 
-    if(data.length > 0){
+    if(
+        masterData.length > 0
+    ){
 
         document
             .getElementById(
                 "uploadForm"
             )
-            .style.display = "none";
+            .style.display =
+                "none";
 
-
-        document
-            .getElementById(
-                "newItemBtn"
-            )
-            .style.display = "block";
-
-
-        updateCompletedCount();
-
+        saveLocal();
 
         render();
 
@@ -695,71 +546,8 @@ window.onload = function(){
 
 };
 
-
-/* =================================================
-   완료 개수
-================================================= */
-
-function updateCompletedCount(){
-
-    completedCount =
-        data.filter(
-            item =>
-                item["조사완료"] === true
-        ).length;
-
-}
-
-
-/* =================================================
-   기존 저장 데이터
-================================================= */
-
-function saveLocal(){
-
-    localStorage.setItem(
-        "inventoryData",
-        JSON.stringify(data)
-    );
-
-}
-
-
-/* =================================================
-   신규 재고 UI
-================================================= */
-
-function toggleNewItem(){
-
-    const box =
-        document.getElementById(
-            "newItemBox"
-        );
-
-
-    if(
-        box.style.display === "none" ||
-        box.style.display === ""
-    ){
-
-        box.style.display =
-            "block";
-
-    }else{
-
-        box.style.display =
-            "none";
-
-    }
-
-}
-
 </script>
 
-
-<!-- =================================================
-     외부 JS
-================================================= -->
 
 <script src="/static/script.js"></script>
 
