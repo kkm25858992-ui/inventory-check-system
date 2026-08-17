@@ -1,4 +1,9 @@
 /* =========================================================
+   재고조사 시스템 script.js
+========================================================= */
+
+
+/* =========================================================
    전역 변수
 ========================================================= */
 
@@ -14,7 +19,7 @@ let inventoryCount = 0;
 
 
 /* =========================================================
-   숫자
+   숫자 처리
 ========================================================= */
 
 function cleanNumber(value){
@@ -36,15 +41,25 @@ function cleanNumber(value){
 
 
 /* =========================================================
-   시작
+   페이지 시작
 ========================================================= */
 
 window.onload = function(){
 
-    mappingData = Array.isArray(mapping)
-        ? mapping
-        : [];
+    /*
+     * index.html에서 전달받은
+     * 상품 마스터 데이터
+     */
 
+    mappingData =
+        Array.isArray(window.mapping)
+            ? window.mapping
+            : [];
+
+
+    /*
+     * 이전 작업 데이터 확인
+     */
 
     const saved =
         localStorage.getItem(
@@ -61,8 +76,7 @@ window.onload = function(){
 
 
             if(
-                Array.isArray(oldData)
-                &&
+                Array.isArray(oldData) &&
                 oldData.length > 0
             ){
 
@@ -84,8 +98,8 @@ window.onload = function(){
                             "currentRack"
                         ) || "";
 
-
-                }else{
+                }
+                else{
 
                     localStorage.removeItem(
                         "inventoryData"
@@ -101,9 +115,14 @@ window.onload = function(){
                 }
             }
 
-        }catch(e){
+        }
+        catch(error){
 
-            console.error(e);
+            console.error(
+                "저장 데이터 불러오기 실패:",
+                error
+            );
+
 
             localStorage.removeItem(
                 "inventoryData"
@@ -112,13 +131,29 @@ window.onload = function(){
     }
 
 
-    document
-        .getElementById("uploadBox")
-        .classList.add("hidden");
+    /*
+     * 업로드 영역 처리
+     *
+     * uploadBox가 존재하는 경우에만 처리
+     */
+
+    const uploadBox =
+        document.getElementById(
+            "uploadBox"
+        );
+
+
+    if(uploadBox){
+
+        uploadBox.classList.add(
+            "hidden"
+        );
+    }
 
 
     /*
-     * 상품마스터가 있으면 바로 랙 스캔
+     * 상품 마스터가 있으면
+     * 바로 랙 스캔 시작
      */
 
     if(mappingData.length > 0){
@@ -130,8 +165,8 @@ window.onload = function(){
 
 
     /*
-     * 기존 조사 데이터가 있어도
-     * 랙 스캔 화면으로 시작
+     * 기존 조사 데이터가 있으면
+     * 바로 랙 스캔 시작
      */
 
     if(inventoryData.length > 0){
@@ -143,13 +178,16 @@ window.onload = function(){
 
 
     /*
-     * 상품마스터가 없는 경우
-     * 업로드 화면 표시
+     * 상품 마스터가 없는 경우
+     * 업로드 영역 표시
      */
 
-    document
-        .getElementById("uploadBox")
-        .classList.remove("hidden");
+    if(uploadBox){
+
+        uploadBox.classList.remove(
+            "hidden"
+        );
+    }
 
 };
 
@@ -184,9 +222,19 @@ function showRackScreen(){
     currentProduct = null;
 
 
-    document
-        .getElementById("app")
-        .innerHTML = `
+    const app =
+        document.getElementById(
+            "app"
+        );
+
+
+    if(!app){
+
+        return;
+    }
+
+
+    app.innerHTML = `
 
         <div class="card">
 
@@ -263,12 +311,11 @@ function showRackScreen(){
 
         </div>
 
-        `;
+    `;
 
 
     /*
-     * 화면이 만들어진 후
-     * 랙 바코드 입력칸에 자동 포커스
+     * 랙 바코드 입력칸 자동 포커스
      */
 
     focusInput(
@@ -278,7 +325,7 @@ function showRackScreen(){
 
 
 /* =========================================================
-   랙 Enter
+   랙 바코드 Enter
 ========================================================= */
 
 function rackKeyDown(event){
@@ -304,8 +351,14 @@ function confirmRack(){
         );
 
 
+    if(!input){
+
+        return;
+    }
+
+
     const rack =
-        input?.value.trim();
+        input.value.trim();
 
 
     if(!rack){
@@ -324,14 +377,18 @@ function confirmRack(){
     }
 
 
-    currentRack = rack;
+    /*
+     * 현재 랙 저장
+     */
+
+    currentRack =
+        rack;
 
 
     saveLocalData();
 
 
     /*
-     * 랙 입력 후
      * 제품 바코드 화면으로 이동
      */
 
@@ -348,9 +405,19 @@ function showProductScreen(){
     currentProduct = null;
 
 
-    document
-        .getElementById("app")
-        .innerHTML = `
+    const app =
+        document.getElementById(
+            "app"
+        );
+
+
+    if(!app){
+
+        return;
+    }
+
+
+    app.innerHTML = `
 
         <div class="card">
 
@@ -435,7 +502,7 @@ function showProductScreen(){
 
         </div>
 
-        `;
+    `;
 
 
     /*
@@ -449,7 +516,7 @@ function showProductScreen(){
 
 
 /* =========================================================
-   제품 Enter
+   제품 바코드 Enter
 ========================================================= */
 
 function productKeyDown(event){
@@ -475,8 +542,14 @@ function confirmProduct(){
         );
 
 
+    if(!input){
+
+        return;
+    }
+
+
     const barcode =
-        input?.value.trim();
+        input.value.trim();
 
 
     if(!barcode){
@@ -496,25 +569,31 @@ function confirmProduct(){
 
 
     /*
-     * 상품마스터에서 바코드 검색
+     * 상품 마스터에서
+     * 바코드 검색
      */
 
     const product =
         mappingData.find(
             item => {
 
-                return String(
-                    item["바코드"] ?? ""
-                )
-                .trim()
-                === barcode;
+                const masterBarcode =
+                    String(
+                        item["바코드"] ?? ""
+                    ).trim();
+
+
+                return (
+                    masterBarcode ===
+                    barcode
+                );
 
             }
         );
 
 
     /*
-     * 등록되지 않은 바코드
+     * 등록되지 않은 제품
      */
 
     if(!product){
@@ -534,7 +613,7 @@ function confirmProduct(){
 
 
     /*
-     * 현재 제품 저장
+     * 현재 제품 정보 저장
      */
 
     currentProduct = {
@@ -557,8 +636,7 @@ function confirmProduct(){
 
 
     /*
-     * 제품 확인 후
-     * 바로 소비기한 입력 화면
+     * 소비기한 입력 화면
      */
 
     showQuantityScreen();
@@ -566,25 +644,47 @@ function confirmProduct(){
 
 
 /* =========================================================
-   소비기한 + 수량 화면
+   소비기한 + 박스수 + 낱개수량 화면
 ========================================================= */
 
 function showQuantityScreen(){
+
+    if(!currentProduct){
+
+        return;
+    }
+
 
     const product =
         currentProduct;
 
 
-    document
-        .getElementById("app")
-        .innerHTML = `
+    const unitQty =
+        cleanNumber(
+            product["입수량"]
+        );
+
+
+    const app =
+        document.getElementById(
+            "app"
+        );
+
+
+    if(!app){
+
+        return;
+    }
+
+
+    app.innerHTML = `
 
         <div class="card">
 
 
-            <!-- ================================
+            <!-- ==========================================
                  현재 랙
-            ================================= -->
+            =========================================== -->
 
             <div class="info-row">
 
@@ -597,9 +697,9 @@ function showQuantityScreen(){
             </div>
 
 
-            <!-- ================================
+            <!-- ==========================================
                  바코드
-            ================================= -->
+            =========================================== -->
 
             <div class="info-row">
 
@@ -607,14 +707,16 @@ function showQuantityScreen(){
                     바코드:
                 </span>
 
-                ${escapeHtml(product["바코드"])}
+                ${escapeHtml(
+                    product["바코드"]
+                )}
 
             </div>
 
 
-            <!-- ================================
+            <!-- ==========================================
                  화주사
-            ================================= -->
+            =========================================== -->
 
             <div class="info-row">
 
@@ -622,14 +724,16 @@ function showQuantityScreen(){
                     화주사:
                 </span>
 
-                ${escapeHtml(product["화주사"])}
+                ${escapeHtml(
+                    product["화주사"]
+                )}
 
             </div>
 
 
-            <!-- ================================
+            <!-- ==========================================
                  상품명
-            ================================= -->
+            =========================================== -->
 
             <div class="info-row">
 
@@ -637,14 +741,16 @@ function showQuantityScreen(){
                     상품명:
                 </span>
 
-                ${escapeHtml(product["상품명"])}
+                ${escapeHtml(
+                    product["상품명"]
+                )}
 
             </div>
 
 
-            <!-- ================================
+            <!-- ==========================================
                  입수량
-            ================================= -->
+            =========================================== -->
 
             <div class="info-row">
 
@@ -652,14 +758,16 @@ function showQuantityScreen(){
                     입수량:
                 </span>
 
-                ${product["입수량"]}
+                <b>
+                    ${unitQty}
+                </b>
 
             </div>
 
 
-            <!-- =================================================
+            <!-- ==========================================
                  소비기한
-            ================================================= -->
+            =========================================== -->
 
             <div class="date-title">
                 소비기한
@@ -726,28 +834,90 @@ function showQuantityScreen(){
             </div>
 
 
-            <!-- =================================================
-                 수량
-            ================================================= -->
+            <!-- ==========================================
+                 박스수
+            =========================================== -->
 
             <div class="qty-title">
-                수량
+                박스수
             </div>
 
 
             <input
-                id="quantity"
+                id="boxQty"
                 type="text"
                 inputmode="numeric"
                 autocomplete="off"
-                placeholder="수량 입력"
-                onkeydown="quantityKeyDown(event)"
+                placeholder="박스수 입력"
+                oninput="calculateTotalQty()"
+                onkeydown="boxQtyKeyDown(event)"
             >
 
 
-            <!-- =================================================
+            <!-- ==========================================
+                 낱개수량
+            =========================================== -->
+
+            <div class="qty-title">
+                낱개수량
+            </div>
+
+
+            <input
+                id="eachQty"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="낱개수량 입력"
+                oninput="calculateTotalQty()"
+                onkeydown="eachQtyKeyDown(event)"
+            >
+
+
+            <!-- ==========================================
+                 총 수량
+            =========================================== -->
+
+            <div class="qty-title">
+                총 수량
+            </div>
+
+
+            <input
+                id="totalQty"
+                type="text"
+                value="0"
+                readonly
+                style="
+                    background:#eeeeee;
+                    font-weight:bold;
+                "
+            >
+
+
+            <!-- ==========================================
+                 계산식
+            =========================================== -->
+
+            <div
+                id="quantityFormula"
+                style="
+                    margin-top:10px;
+                    padding:12px;
+                    background:#f5f5f5;
+                    border-radius:8px;
+                    text-align:center;
+                    font-size:18px;
+                    font-weight:bold;
+                "
+            >
+                ${unitQty} × 0 + 0 = 0
+            </div>
+
+
+            <!-- ==========================================
                  저장
-            ================================================= -->
+            =========================================== -->
 
             <button
                 class="save-qty-btn"
@@ -756,6 +926,10 @@ function showQuantityScreen(){
                 수량 저장
             </button>
 
+
+            <!-- ==========================================
+                 취소
+            =========================================== -->
 
             <button
                 onclick="cancelProduct()"
@@ -766,14 +940,13 @@ function showQuantityScreen(){
 
         </div>
 
-        `;
+    `;
 
 
     /*
-     * ★ 가장 중요
+     * 제품 확인 완료 후
      *
-     * 제품 바코드 확인 후
-     * 소비기한 년도 칸으로 자동 포커스
+     * ★ 소비기한 년도 자동 포커스
      */
 
     focusInput(
@@ -783,7 +956,7 @@ function showQuantityScreen(){
 
 
 /* =========================================================
-   날짜 - 년도
+   소비기한 년도 입력
 ========================================================= */
 
 function dateYearInput(){
@@ -792,6 +965,12 @@ function dateYearInput(){
         document.getElementById(
             "expiryYear"
         );
+
+
+    if(!input){
+
+        return;
+    }
 
 
     /*
@@ -807,7 +986,7 @@ function dateYearInput(){
 
     /*
      * 4자리 입력 완료
-     * → 월로 이동
+     * → 월 이동
      */
 
     if(
@@ -829,7 +1008,7 @@ function dateYearInput(){
 
 
 /* =========================================================
-   날짜 - 월
+   소비기한 월 입력
 ========================================================= */
 
 function dateMonthInput(){
@@ -838,6 +1017,12 @@ function dateMonthInput(){
         document.getElementById(
             "expiryMonth"
         );
+
+
+    if(!input){
+
+        return;
+    }
 
 
     input.value =
@@ -849,7 +1034,7 @@ function dateMonthInput(){
 
     /*
      * 2자리 입력 완료
-     * → 일로 이동
+     * → 일 이동
      */
 
     if(
@@ -871,7 +1056,7 @@ function dateMonthInput(){
 
 
 /* =========================================================
-   날짜 - 일
+   소비기한 일 입력
 ========================================================= */
 
 function dateDayInput(){
@@ -880,6 +1065,12 @@ function dateDayInput(){
         document.getElementById(
             "expiryDay"
         );
+
+
+    if(!input){
+
+        return;
+    }
 
 
     input.value =
@@ -892,7 +1083,7 @@ function dateDayInput(){
     /*
      * 2자리 입력 완료
      *
-     * ★ 여기서 바로 수량 입력칸으로 이동
+     * → 박스수로 이동
      */
 
     if(
@@ -907,7 +1098,7 @@ function dateDayInput(){
 
 
         focusInput(
-            "quantity"
+            "boxQty"
         );
     }
 }
@@ -949,12 +1140,12 @@ function dateKeyDown(event){
     else if(id === "expiryDay"){
 
         /*
-         * 소비기한 Enter
-         * → 수량
+         * 소비기한 완료
+         * → 박스수
          */
 
         focusInput(
-            "quantity"
+            "boxQty"
         );
 
     }
@@ -986,7 +1177,7 @@ function getExpiryDate(){
 
 
     /*
-     * 전부 비어있으면 빈 값
+     * 모두 비어있으면 빈 값
      */
 
     if(
@@ -1000,14 +1191,12 @@ function getExpiryDate(){
 
 
     /*
-     * 형식 체크
+     * 자리수 확인
      */
 
     if(
-        year.length !== 4
-        ||
-        month.length !== 2
-        ||
+        year.length !== 4 ||
+        month.length !== 2 ||
         day.length !== 2
     ){
 
@@ -1021,7 +1210,7 @@ function getExpiryDate(){
 
 
     /*
-     * 월 체크
+     * 월 확인
      */
 
     const monthNumber =
@@ -1029,8 +1218,7 @@ function getExpiryDate(){
 
 
     if(
-        monthNumber < 1
-        ||
+        monthNumber < 1 ||
         monthNumber > 12
     ){
 
@@ -1049,7 +1237,7 @@ function getExpiryDate(){
 
 
     /*
-     * 일 체크
+     * 일 확인
      */
 
     const dayNumber =
@@ -1057,8 +1245,7 @@ function getExpiryDate(){
 
 
     if(
-        dayNumber < 1
-        ||
+        dayNumber < 1 ||
         dayNumber > 31
     ){
 
@@ -1077,20 +1264,20 @@ function getExpiryDate(){
 
 
     return (
-        year
-        + "-"
-        + month
-        + "-"
-        + day
+        year +
+        "-" +
+        month +
+        "-" +
+        day
     );
 }
 
 
 /* =========================================================
-   수량 Enter
+   박스수 입력
 ========================================================= */
 
-function quantityKeyDown(event){
+function boxQtyKeyDown(event){
 
     if(event.key !== "Enter"){
 
@@ -1102,11 +1289,159 @@ function quantityKeyDown(event){
 
 
     /*
-     * Enter를 누르면
-     * 바로 수량 저장
+     * 박스수 입력 완료
+     * → 낱개수량
+     */
+
+    focusInput(
+        "eachQty"
+    );
+}
+
+
+/* =========================================================
+   낱개수량 입력
+========================================================= */
+
+function eachQtyKeyDown(event){
+
+    if(event.key !== "Enter"){
+
+        return;
+    }
+
+
+    event.preventDefault();
+
+
+    /*
+     * 낱개수량 Enter
+     * → 저장
      */
 
     saveQuantity();
+}
+
+
+/* =========================================================
+   박스수 + 낱개수량 자동 계산
+========================================================= */
+
+function calculateTotalQty(){
+
+    if(!currentProduct){
+
+        return;
+    }
+
+
+    const unitQty =
+        cleanNumber(
+            currentProduct["입수량"]
+        );
+
+
+    const boxInput =
+        document.getElementById(
+            "boxQty"
+        );
+
+
+    const eachInput =
+        document.getElementById(
+            "eachQty"
+        );
+
+
+    const totalInput =
+        document.getElementById(
+            "totalQty"
+        );
+
+
+    if(
+        !boxInput ||
+        !eachInput ||
+        !totalInput
+    ){
+
+        return;
+    }
+
+
+    /*
+     * 숫자만 허용
+     */
+
+    boxInput.value =
+        boxInput.value.replace(
+            /[^0-9]/g,
+            ""
+        );
+
+
+    eachInput.value =
+        eachInput.value.replace(
+            /[^0-9]/g,
+            ""
+        );
+
+
+    /*
+     * 박스수
+     */
+
+    const boxQty =
+        cleanNumber(
+            boxInput.value
+        );
+
+
+    /*
+     * 낱개수량
+     */
+
+    const eachQty =
+        cleanNumber(
+            eachInput.value
+        );
+
+
+    /*
+     * 총 수량
+     *
+     * 입수량 × 박스수 + 낱개수량
+     */
+
+    const totalQty =
+        (unitQty * boxQty)
+        + eachQty;
+
+
+    /*
+     * 총 수량 표시
+     */
+
+    totalInput.value =
+        totalQty;
+
+
+    /*
+     * 계산식 표시
+     */
+
+    const formula =
+        document.getElementById(
+            "quantityFormula"
+        );
+
+
+    if(formula){
+
+        formula.innerText =
+            `${unitQty} × ${boxQty} + ${eachQty} = ${totalQty}`;
+
+    }
 }
 
 
@@ -1137,36 +1472,89 @@ function saveQuantity(){
 
 
     /*
-     * 수량
+     * 입력칸 가져오기
      */
 
-    const quantityInput =
+    const boxInput =
         document.getElementById(
-            "quantity"
+            "boxQty"
         );
 
 
-    const quantity =
+    const eachInput =
+        document.getElementById(
+            "eachQty"
+        );
+
+
+    const totalInput =
+        document.getElementById(
+            "totalQty"
+        );
+
+
+    if(
+        !boxInput ||
+        !eachInput ||
+        !totalInput
+    ){
+
+        return;
+    }
+
+
+    /*
+     * 박스수
+     */
+
+    const boxQty =
         cleanNumber(
-            quantityInput?.value
+            boxInput.value
         );
 
 
     /*
-     * 수량이 0인 경우
+     * 낱개수량
      */
 
-    if(
-        quantity <= 0
-    ){
+    const eachQty =
+        cleanNumber(
+            eachInput.value
+        );
+
+
+    /*
+     * 입수량
+     */
+
+    const unitQty =
+        cleanNumber(
+            currentProduct["입수량"]
+        );
+
+
+    /*
+     * 총 수량
+     */
+
+    const totalQty =
+        (unitQty * boxQty)
+        + eachQty;
+
+
+    /*
+     * 총 수량이 0인 경우
+     */
+
+    if(totalQty <= 0){
 
         alert(
-            "수량을 입력해주세요."
+            "박스수 또는 낱개수량을 입력해주세요."
         );
 
 
         focusInput(
-            "quantity"
+            "boxQty"
         );
 
 
@@ -1176,16 +1564,18 @@ function saveQuantity(){
 
     /*
      * =====================================================
-     * 시트1에 저장할 데이터
+     * 재고조사 데이터 추가
+     *
+     * 엑셀 시트1
+     *
+     * A 바코드
+     * B 랙
+     * C 소비기한
+     * D 수량
+     * E 상품명
+     * F 화주사
+     *
      * =====================================================
-     *
-     * A = 바코드
-     * B = 랙
-     * C = 소비기한
-     * D = 수량
-     * E = 상품명
-     * F = 화주사
-     *
      */
 
     inventoryData.push({
@@ -1200,13 +1590,26 @@ function saveQuantity(){
             expiry,
 
         "수량":
-            quantity,
+            totalQty,
 
         "상품명":
             currentProduct["상품명"],
 
         "화주사":
-            currentProduct["화주사"]
+            currentProduct["화주사"],
+
+        /*
+         * 내부 작업용
+         */
+
+        "박스수":
+            boxQty,
+
+        "낱개수량":
+            eachQty,
+
+        "입수량":
+            unitQty
 
     });
 
@@ -1224,12 +1627,12 @@ function saveQuantity(){
 
     /*
      * =====================================================
-     * ★ 핵심 변경
+     * ★ 핵심
      *
-     * 수량 저장 후
-     * 제품 화면으로 가지 않고
+     * 한 제품 저장 후
+     * 현재 랙도 초기화
      *
-     * 다시 랙 바코드 스캔부터 시작
+     * 다시 랙 바코드부터 시작
      * =====================================================
      */
 
@@ -1240,6 +1643,10 @@ function saveQuantity(){
 
     saveLocalData();
 
+
+    /*
+     * 다시 랙 스캔
+     */
 
     showRackScreen();
 }
@@ -1253,9 +1660,11 @@ function cancelProduct(){
 
     currentProduct = null;
 
+
     /*
-     * 제품 취소도 다시
-     * 제품 바코드 화면으로
+     * 현재 랙은 유지
+     *
+     * 제품만 다시 스캔
      */
 
     showProductScreen();
@@ -1281,7 +1690,7 @@ function changeRack(){
 
 
 /* =========================================================
-   다운로드
+   엑셀 다운로드
 ========================================================= */
 
 function download(){
@@ -1294,6 +1703,7 @@ function download(){
             "재고조사 데이터가 없습니다."
         );
 
+
         return;
     }
 
@@ -1303,15 +1713,18 @@ function download(){
             fileId => {
 
                 window.location =
-                    "/download/"
-                    + fileId;
+                    "/download/" +
+                    fileId;
 
             }
         )
         .catch(
             error => {
 
-                console.error(error);
+                console.error(
+                    error
+                );
+
 
                 alert(
                     "엑셀 저장에 실패했습니다."
@@ -1323,7 +1736,7 @@ function download(){
 
 
 /* =========================================================
-   공유
+   엑셀 공유
 ========================================================= */
 
 function share(){
@@ -1336,6 +1749,7 @@ function share(){
             "재고조사 데이터가 없습니다."
         );
 
+
         return;
     }
 
@@ -1345,10 +1759,14 @@ function share(){
             fileId => {
 
                 const url =
-                    location.origin
-                    + "/share/"
-                    + fileId;
+                    location.origin +
+                    "/share/" +
+                    fileId;
 
+
+                /*
+                 * 모바일 공유
+                 */
 
                 if(
                     navigator.share
@@ -1375,12 +1793,18 @@ function share(){
                 }
 
 
+                /*
+                 * 클립보드
+                 */
+
                 if(
                     navigator.clipboard
                 ){
 
                     navigator.clipboard
-                        .writeText(url)
+                        .writeText(
+                            url
+                        )
                         .then(
                             () => {
 
@@ -1414,7 +1838,10 @@ function share(){
         .catch(
             error => {
 
-                console.error(error);
+                console.error(
+                    error
+                );
+
 
                 alert(
                     "공유 링크 생성에 실패했습니다."
@@ -1435,7 +1862,8 @@ function saveToServer(){
         "/save",
         {
 
-            method: "POST",
+            method:
+                "POST",
 
             headers: {
 
@@ -1444,15 +1872,26 @@ function saveToServer(){
 
             },
 
-            body: JSON.stringify({
+            body:
+                JSON.stringify({
 
-                inventory:
-                    inventoryData,
+                    /*
+                     * 실제 조사 데이터
+                     */
 
-                mapping:
-                    mappingData
+                    inventory:
+                        inventoryData,
 
-            })
+                    /*
+                     * 상품 마스터
+                     *
+                     * 시트2 유지용
+                     */
+
+                    mapping:
+                        mappingData
+
+                })
 
         }
     )
@@ -1464,12 +1903,10 @@ function saveToServer(){
                 throw new Error(
                     "서버 저장 실패"
                 );
-
             }
 
 
             return response.json();
-
         }
     )
     .then(
@@ -1480,19 +1917,17 @@ function saveToServer(){
                 throw new Error(
                     result.error
                 );
-
             }
 
 
             return result.file_id;
-
         }
     );
 }
 
 
 /* =========================================================
-   수동 공유
+   공유 링크 수동 복사
 ========================================================= */
 
 function showManualCopy(url){
@@ -1501,6 +1936,12 @@ function showManualCopy(url){
         document.getElementById(
             "app"
         );
+
+
+    if(!app){
+
+        return;
+    }
 
 
     const old =
@@ -1552,7 +1993,9 @@ function showManualCopy(url){
     `;
 
 
-    app.prepend(div);
+    app.prepend(
+        div
+    );
 }
 
 
@@ -1570,6 +2013,7 @@ function createQR(){
             "재고조사 데이터가 없습니다."
         );
 
+
         return;
     }
 
@@ -1579,9 +2023,13 @@ function createQR(){
             fileId => {
 
                 const qrUrl =
-                    "/qr/"
-                    + fileId;
+                    "/qr/" +
+                    fileId;
 
+
+                /*
+                 * 기존 QR 제거
+                 */
 
                 const old =
                     document.getElementById(
@@ -1653,20 +2101,28 @@ function createQR(){
                 `;
 
 
-                document
-                    .getElementById(
+                const app =
+                    document.getElementById(
                         "app"
-                    )
-                    .appendChild(
+                    );
+
+
+                if(app){
+
+                    app.appendChild(
                         div
                     );
+                }
 
             }
         )
         .catch(
             error => {
 
-                console.error(error);
+                console.error(
+                    error
+                );
+
 
                 alert(
                     "QR 생성 실패"
@@ -1697,13 +2153,13 @@ function closeQR(){
 
 
 /* =========================================================
-   포커스 함수
+   입력칸 포커스
 ========================================================= */
 
 function focusInput(id){
 
     setTimeout(
-        () => {
+        function(){
 
             const input =
                 document.getElementById(
@@ -1716,7 +2172,6 @@ function focusInput(id){
                 input.focus();
 
                 input.select();
-
             }
 
         },
