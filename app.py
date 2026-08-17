@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, send_file, session, redirect, jsonify
+from flask import (
+    Flask,
+    render_template,
+    request,
+    send_file,
+    session,
+    redirect,
+    jsonify
+)
+
 import pandas as pd
 import uuid
 import os
@@ -10,6 +19,7 @@ from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
+
 app.secret_key = "secret_key_123"
 
 
@@ -20,6 +30,7 @@ app.secret_key = "secret_key_123"
 admins = {
     "김경민": "ourbox123",
 }
+
 
 users = {
     "김경민": "ourbox",
@@ -39,7 +50,7 @@ os.makedirs(
     exist_ok=True
 )
 
-FILE_EXPIRE_TIME = 60 * 60   # 1시간
+FILE_EXPIRE_TIME = 60 * 60
 
 
 # =========================================================
@@ -57,48 +68,120 @@ def delete_old_files():
             filename
         )
 
-        if os.path.isfile(file_path):
+        if not os.path.isfile(file_path):
+            continue
 
-            if now - os.path.getmtime(file_path) > FILE_EXPIRE_TIME:
+        if (
+            now - os.path.getmtime(file_path)
+            > FILE_EXPIRE_TIME
+        ):
 
-                try:
-                    os.remove(file_path)
-                except:
-                    pass
+            try:
+                os.remove(file_path)
+
+            except Exception:
+                pass
 
 
 # =========================================================
-# 숫자 변환
+# 숫자 처리
 # =========================================================
 
 def clean_number(value):
 
-    if pd.isna(value):
+    if value is None:
         return 0
 
     try:
 
-        value = str(value).replace(",", "").strip()
+        text = str(value)
 
-        if value == "":
+        text = text.replace(
+            ",",
+            ""
+        ).strip()
+
+        if text == "":
             return 0
 
-        return float(value)
+        number = float(text)
 
-    except:
+        if number.is_integer():
+            return int(number)
+
+        return number
+
+    except Exception:
 
         return 0
+
+
+# =========================================================
+# 문자열 처리
+# =========================================================
+
+def clean_text(value):
+
+    if value is None:
+        return ""
+
+    try:
+
+        if pd.isna(value):
+            return ""
+
+    except Exception:
+        pass
+
+    return str(value).strip()
+
+
+# =========================================================
+# 바코드 처리
+#
+# Excel에서 숫자로 읽히면서
+# 8801234567890.0 형태가 되는 것을 방지
+# =========================================================
+
+def clean_barcode(value):
+
+    if value is None:
+        return ""
+
+    try:
+
+        if pd.isna(value):
+            return ""
+
+    except Exception:
+        pass
+
+    text = str(value).strip()
+
+    if text.endswith(".0"):
+
+        try:
+
+            number = float(text)
+
+            if number.is_integer():
+                return str(int(number))
+
+        except Exception:
+            pass
+
+    return text
 
 
 # =========================================================
 # 로그인 페이지
 # =========================================================
 
-@app.route('/login')
+@app.route("/login")
 def login_page():
 
     return render_template(
-        'login.html'
+        "login.html"
     )
 
 
@@ -106,34 +189,43 @@ def login_page():
 # 로그인
 # =========================================================
 
-@app.route('/login', methods=['POST'])
+@app.route(
+    "/login",
+    methods=["POST"]
+)
 def login():
 
-    user_id = request.form.get('id')
-    pw = request.form.get('pw')
-    role = request.form.get('role')
+    user_id = request.form.get("id")
+    pw = request.form.get("pw")
+    role = request.form.get("role")
 
 
     # 관리자
     if role == "admin":
 
-        if user_id in admins and admins[user_id] == pw:
+        if (
+            user_id in admins
+            and admins[user_id] == pw
+        ):
 
-            session['login'] = True
-            session['role'] = 'admin'
+            session["login"] = True
+            session["role"] = "admin"
 
-            return redirect('/admin')
+            return redirect("/admin")
 
 
     # 사용자
-    elif role == "user":
+    if role == "user":
 
-        if user_id in users and users[user_id] == pw:
+        if (
+            user_id in users
+            and users[user_id] == pw
+        ):
 
-            session['login'] = True
-            session['role'] = 'user'
+            session["login"] = True
+            session["role"] = "user"
 
-            return redirect('/')
+            return redirect("/")
 
 
     return "로그인 실패"
@@ -143,19 +235,20 @@ def login():
 # 사용자 페이지
 # =========================================================
 
-@app.route('/')
+@app.route("/")
 def index():
 
-    if not session.get('login'):
-        return redirect('/login')
+    if not session.get("login"):
+        return redirect("/login")
 
-    if session.get('role') != 'user':
-        return redirect('/login')
+    if session.get("role") != "user":
+        return redirect("/login")
 
 
     return render_template(
-        'index.html',
-        data=[]
+        "index.html",
+        data=[],
+        master_data=[]
     )
 
 
@@ -163,38 +256,44 @@ def index():
 # 관리자 페이지
 # =========================================================
 
-@app.route('/admin')
+@app.route("/admin")
 def admin():
 
-    if not session.get('login'):
-        return redirect('/login')
+    if not session.get("login"):
+        return redirect("/login")
 
-    if session.get('role') != 'admin':
-        return redirect('/login')
+    if session.get("role") != "admin":
+        return redirect("/login")
 
 
     files = []
 
 
-    for filename in os.listdir(UPLOAD_FOLDER):
+    for filename in os.listdir(
+        UPLOAD_FOLDER
+    ):
 
-        if filename.endswith(".xlsx"):
-
-            file_path = os.path.join(
-                UPLOAD_FOLDER,
-                filename
-            )
+        if not filename.endswith(".xlsx"):
+            continue
 
 
-            files.append({
+        file_path = os.path.join(
+            UPLOAD_FOLDER,
+            filename
+        )
 
-                "id": filename.replace(
+
+        files.append({
+
+            "id":
+                filename.replace(
                     ".xlsx",
                     ""
                 ),
 
-                "time": time.strftime(
-                    '%Y-%m-%d %H:%M:%S',
+            "time":
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
                     time.localtime(
                         os.path.getmtime(
                             file_path
@@ -202,18 +301,17 @@ def admin():
                     )
                 )
 
-            })
+        })
 
 
-    files = sorted(
-        files,
+    files.sort(
         key=lambda x: x["time"],
         reverse=True
     )
 
 
     return render_template(
-        'admin.html',
+        "admin.html",
         files=files
     )
 
@@ -222,356 +320,237 @@ def admin():
 # 엑셀 업로드
 #
 # 시트1
-# A = 바코드
-# B = 랙
-# C = 소비기한
-# D = 수량
+# -----
+# 비어 있어도 됨
+#
 #
 # 시트2
+# -----
 # A = 화주사
 # B = 바코드
 # C = 입수량
 # D = 상품명
 # =========================================================
 
-@app.route('/upload', methods=['POST'])
+@app.route(
+    "/upload",
+    methods=["POST"]
+)
 def upload():
 
     try:
 
-        file = request.files.get('file')
+        file = request.files.get(
+            "file"
+        )
 
 
         if not file:
 
-            return "파일이 없습니다."
+            return "엑셀 파일이 없습니다."
 
 
-        # -------------------------------------------------
-        # 파일명
-        # -------------------------------------------------
+        if not file.filename:
+
+            return "파일을 선택해주세요."
+
 
         filename = secure_filename(
             file.filename.lower()
         )
 
 
-        # -------------------------------------------------
-        # 엑셀 / CSV 읽기
-        # -------------------------------------------------
+        # =================================================
+        # CSV
+        # =================================================
 
-        if filename.endswith('.csv'):
+        if filename.endswith(".csv"):
 
-            df1 = pd.read_csv(
-                file,
-                dtype=str
+            return (
+                "CSV는 사용할 수 없습니다. "
+                "시트2 상품정보가 필요하므로 "
+                "Excel 파일(.xlsx)을 사용해주세요."
             )
-
-            df2 = pd.DataFrame()
-
-        else:
-
-            excel = pd.ExcelFile(
-                file,
-                engine='openpyxl'
-            )
-
-
-            # ---------------------------------------------
-            # 시트1
-            # ---------------------------------------------
-
-            df1 = pd.read_excel(
-                excel,
-                sheet_name=0,
-                dtype=str
-            )
-
-
-            # ---------------------------------------------
-            # 시트2
-            # ---------------------------------------------
-
-            if len(excel.sheet_names) >= 2:
-
-                df2 = pd.read_excel(
-                    excel,
-                    sheet_name=1,
-                    dtype=str
-                )
-
-            else:
-
-                df2 = pd.DataFrame()
 
 
         # =================================================
-        # 시트1 컬럼 확인
+        # Excel
         # =================================================
 
-        required_cols = [
-            "바코드",
-            "랙",
-            "소비기한",
-            "수량"
-        ]
+        excel = pd.ExcelFile(
+            file,
+            engine="openpyxl"
+        )
 
 
-        for col in required_cols:
+        # 최소 2개 시트 필요
+        if len(excel.sheet_names) < 2:
 
-            if col not in df1.columns:
+            return (
+                "엑셀 파일에 시트2가 없습니다.<br><br>"
+                "시트2에는 다음 컬럼이 필요합니다.<br>"
+                "A열 = 화주사<br>"
+                "B열 = 바코드<br>"
+                "C열 = 입수량<br>"
+                "D열 = 상품명"
+            )
 
-                return f"시트1에 '{col}' 컬럼이 없습니다."
+
+        # =================================================
+        # 시트1
+        #
+        # 실제 내용은 사용하지 않음
+        # 비어 있어도 정상
+        # =================================================
+
+        df_sheet1 = pd.read_excel(
+            excel,
+            sheet_name=0,
+            dtype=str
+        )
+
+
+        # =================================================
+        # 시트2
+        # =================================================
+
+        df_master = pd.read_excel(
+            excel,
+            sheet_name=1,
+            dtype=str
+        )
 
 
         # =================================================
         # 시트2 컬럼 확인
         # =================================================
 
-        if not df2.empty:
-
-            required_sheet2_cols = [
-                "화주사",
-                "바코드",
-                "입수량",
-                "상품명"
-            ]
+        required_master_columns = [
+            "화주사",
+            "바코드",
+            "입수량",
+            "상품명"
+        ]
 
 
-            for col in required_sheet2_cols:
+        for col in required_master_columns:
 
-                if col not in df2.columns:
+            if col not in df_master.columns:
 
-                    return (
-                        f"시트2에 '{col}' "
-                        f"컬럼이 없습니다."
-                    )
-
-
-        # =================================================
-        # 시트1 기본 데이터 정리
-        # =================================================
-
-        df1["바코드"] = (
-            df1["바코드"]
-            .fillna("")
-            .astype(str)
-            .str.strip()
-        )
-
-
-        df1["랙"] = (
-            df1["랙"]
-            .fillna("")
-            .astype(str)
-            .str.strip()
-        )
-
-
-        df1["소비기한"] = (
-            df1["소비기한"]
-            .fillna("")
-            .astype(str)
-            .str[:10]
-        )
-
-
-        # =================================================
-        # 수량 숫자 처리
-        # =================================================
-
-        df1["수량"] = (
-            df1["수량"]
-            .fillna("")
-            .astype(str)
-            .str.replace(",", "", regex=False)
-            .str.strip()
-        )
-
-
-        df1["수량"] = pd.to_numeric(
-            df1["수량"],
-            errors='coerce'
-        ).fillna(0)
-
-
-        # =================================================
-        # 시트2 데이터 정리
-        # =================================================
-
-        if not df2.empty:
-
-            df2["화주사"] = (
-                df2["화주사"]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-            )
-
-
-            df2["바코드"] = (
-                df2["바코드"]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-            )
-
-
-            df2["입수량"] = (
-                df2["입수량"]
-                .fillna("")
-                .astype(str)
-                .str.replace(",", "", regex=False)
-                .str.strip()
-            )
-
-
-            df2["입수량"] = pd.to_numeric(
-                df2["입수량"],
-                errors='coerce'
-            ).fillna(0)
-
-
-            df2["상품명"] = (
-                df2["상품명"]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-            )
-
-
-        # =================================================
-        # 바코드 기준 시트2 매칭
-        # =================================================
-
-        if not df2.empty:
-
-            # 같은 바코드가 여러 개 있을 경우
-            # 첫 번째 데이터를 사용
-            df2_map = (
-                df2
-                .drop_duplicates(
-                    subset=["바코드"],
-                    keep="first"
+                return (
+                    "시트2에 "
+                    f"'{col}' 컬럼이 없습니다."
                 )
-                .set_index("바코드")
-            )
-
-
-            # -------------------------------------------------
-            # 화주사
-            # -------------------------------------------------
-
-            df1["화주사"] = (
-                df1["바코드"]
-                .map(
-                    df2_map["화주사"]
-                )
-                .fillna("")
-            )
-
-
-            # -------------------------------------------------
-            # 입수량
-            # -------------------------------------------------
-
-            df1["입수량"] = (
-                df1["바코드"]
-                .map(
-                    df2_map["입수량"]
-                )
-                .fillna(0)
-            )
-
-
-            # -------------------------------------------------
-            # 상품명
-            # -------------------------------------------------
-
-            df1["상품명"] = (
-                df1["바코드"]
-                .map(
-                    df2_map["상품명"]
-                )
-                .fillna("")
-            )
-
-
-        else:
-
-            df1["화주사"] = ""
-            df1["입수량"] = 0
-            df1["상품명"] = ""
 
 
         # =================================================
-        # 정렬
+        # 시트2 정리
         # =================================================
 
-        df1 = df1.sort_values(
-            by="랙",
-            kind="stable"
+        df_master["화주사"] = (
+            df_master["화주사"]
+            .apply(clean_text)
+        )
+
+
+        df_master["바코드"] = (
+            df_master["바코드"]
+            .apply(clean_barcode)
+        )
+
+
+        df_master["입수량"] = (
+            df_master["입수량"]
+            .apply(clean_number)
+        )
+
+
+        df_master["상품명"] = (
+            df_master["상품명"]
+            .apply(clean_text)
         )
 
 
         # =================================================
-        # 조사 화면에 전달할 컬럼
+        # 빈 바코드 제거
+        # =================================================
+
+        df_master = df_master[
+            df_master["바코드"] != ""
+        ].copy()
+
+
+        # =================================================
+        # 같은 바코드가 여러 개 있을 경우
         #
-        # 기존 JS와 새 JS에서 사용하기 편하도록
-        # 필요한 정보만 전달
+        # 첫 번째 데이터를 사용
         # =================================================
 
-        result = []
+        df_master = (
+            df_master
+            .drop_duplicates(
+                subset=["바코드"],
+                keep="first"
+            )
+        )
 
 
-        for _, row in df1.iterrows():
+        # =================================================
+        # 최종 master 데이터
+        # =================================================
 
-            result.append({
+        master_data = []
 
-                "바코드": str(
-                    row["바코드"]
-                ),
 
-                "랙": str(
-                    row["랙"]
-                ),
+        for _, row in df_master.iterrows():
 
-                "소비기한": str(
-                    row["소비기한"]
-                ),
+            master_data.append({
 
-                "수량": clean_number(
-                    row["수량"]
-                ),
+                "화주사":
+                    clean_text(
+                        row["화주사"]
+                    ),
 
-                "입수량": clean_number(
-                    row["입수량"]
-                ),
+                "바코드":
+                    clean_barcode(
+                        row["바코드"]
+                    ),
 
-                "상품명": str(
-                    row["상품명"]
-                ),
+                "입수량":
+                    clean_number(
+                        row["입수량"]
+                    ),
 
-                "화주사": str(
-                    row["화주사"]
-                ),
-
-                # 조사 결과
-                "실수량": "",
-                "박스수량": "",
-                "낱개수량": "",
-                "조사완료": False
+                "상품명":
+                    clean_text(
+                        row["상품명"]
+                    )
 
             })
 
 
         # =================================================
-        # 업로드 후 화면
+        # 조사 데이터는 빈 상태
+        #
+        # ★ 중요
+        # 시트1 데이터를 가져오지 않음
+        # =================================================
+
+        inventory_data = []
+
+
+        # =================================================
+        # 조사 화면으로 이동
         # =================================================
 
         return render_template(
-            'index.html',
-            data=result
+
+            "index.html",
+
+            data=inventory_data,
+
+            master_data=master_data
+
         )
 
 
@@ -582,33 +561,46 @@ def upload():
             e
         )
 
+
         return (
-            f"엑셀 업로드 중 오류가 발생했습니다.<br>"
-            f"{str(e)}"
+            "엑셀 업로드 중 오류가 발생했습니다.<br><br>"
+            + str(e)
         )
 
 
 # =========================================================
-# 저장
+# 재고조사 결과 저장
+#
+# POST JSON
+#
+# {
+#     "inventory": [...],
+#     "master": [...]
+# }
+#
 #
 # 최종 시트1
+# ----------
+# A 바코드
+# B 랙
+# C 소비기한
+# D 수량
+# E 상품명
+# F 화주사
 #
-# A = 바코드
-# B = 랙
-# C = 소비기한
-# D = 수량
-# E = 상품명
-# F = 화주사
 #
 # 최종 시트2
-#
-# A = 화주사
-# B = 바코드
-# C = 입수량
-# D = 상품명
+# ----------
+# A 화주사
+# B 바코드
+# C 입수량
+# D 상품명
 # =========================================================
 
-@app.route('/save', methods=['POST'])
+@app.route(
+    "/save",
+    methods=["POST"]
+)
 def save():
 
     delete_old_files()
@@ -616,91 +608,114 @@ def save():
 
     try:
 
-        json_data = request.get_json()
+        payload = request.get_json()
 
 
-        if not json_data:
-
-            return jsonify({
-                "error": "데이터 없음"
-            }), 400
-
-
-        df = pd.DataFrame(
-            json_data
-        )
-
-
-        if df.empty:
+        if not payload:
 
             return jsonify({
-                "error": "데이터 없음"
+                "error": "저장할 데이터가 없습니다."
             }), 400
 
 
         # =================================================
-        # 시트1 컬럼 생성
+        # 데이터 구분
         # =================================================
 
-        sheet1_columns = [
-            "바코드",
-            "랙",
-            "소비기한",
-            "수량",
-            "상품명",
-            "화주사"
-        ]
-
-
-        for col in sheet1_columns:
-
-            if col not in df.columns:
-
-                df[col] = ""
-
-
-        # =================================================
-        # 수량 정리
-        #
-        # 조사 완료 후 실수량을 D열에 저장
-        # =================================================
-
-        def get_final_qty(row):
-
-            value = row.get(
-                "실수량",
-                ""
+        inventory_data = (
+            payload.get(
+                "inventory",
+                []
             )
-
-            if value is not None:
-
-                if str(value).strip() != "":
-
-                    return clean_number(
-                        value
-                    )
-
-
-            return clean_number(
-                row.get(
-                    "수량",
-                    0
-                )
-            )
-
-
-        df["수량"] = df.apply(
-            get_final_qty,
-            axis=1
         )
+
+
+        master_data = (
+            payload.get(
+                "master",
+                []
+            )
+        )
+
+
+        # =================================================
+        # 조사 결과 확인
+        # =================================================
+
+        if not inventory_data:
+
+            return jsonify({
+                "error":
+                    "재고조사한 데이터가 없습니다."
+            }), 400
 
 
         # =================================================
         # 시트1 생성
         # =================================================
 
-        df_sheet1 = df[
-            [
+        sheet1_rows = []
+
+
+        for item in inventory_data:
+
+            sheet1_rows.append({
+
+                "바코드":
+                    clean_barcode(
+                        item.get(
+                            "바코드",
+                            ""
+                        )
+                    ),
+
+                "랙":
+                    clean_text(
+                        item.get(
+                            "랙",
+                            ""
+                        )
+                    ),
+
+                "소비기한":
+                    clean_text(
+                        item.get(
+                            "소비기한",
+                            ""
+                        )
+                    ),
+
+                "수량":
+                    clean_number(
+                        item.get(
+                            "수량",
+                            0
+                        )
+                    ),
+
+                "상품명":
+                    clean_text(
+                        item.get(
+                            "상품명",
+                            ""
+                        )
+                    ),
+
+                "화주사":
+                    clean_text(
+                        item.get(
+                            "화주사",
+                            ""
+                        )
+                    )
+
+            })
+
+
+        df_sheet1 = pd.DataFrame(
+            sheet1_rows,
+
+            columns=[
                 "바코드",
                 "랙",
                 "소비기한",
@@ -708,36 +723,73 @@ def save():
                 "상품명",
                 "화주사"
             ]
-        ].copy()
+        )
 
 
         # =================================================
         # 시트2 생성
         #
-        # 조사 데이터에 들어있는
-        # 화주사 / 바코드 / 입수량 / 상품명
-        # 을 이용해서 생성
+        # 업로드했던 상품 마스터를 그대로 유지
         # =================================================
 
-        df_sheet2 = df[
-            [
+        master_rows = []
+
+
+        for item in master_data:
+
+            master_rows.append({
+
+                "화주사":
+                    clean_text(
+                        item.get(
+                            "화주사",
+                            ""
+                        )
+                    ),
+
+                "바코드":
+                    clean_barcode(
+                        item.get(
+                            "바코드",
+                            ""
+                        )
+                    ),
+
+                "입수량":
+                    clean_number(
+                        item.get(
+                            "입수량",
+                            0
+                        )
+                    ),
+
+                "상품명":
+                    clean_text(
+                        item.get(
+                            "상품명",
+                            ""
+                        )
+                    )
+
+            })
+
+
+        df_sheet2 = pd.DataFrame(
+
+            master_rows,
+
+            columns=[
                 "화주사",
                 "바코드",
                 "입수량",
                 "상품명"
             ]
-        ].copy()
 
-
-        # 중복 제거
-        df_sheet2 = df_sheet2.drop_duplicates(
-            subset=["바코드"],
-            keep="first"
         )
 
 
         # =================================================
-        # 파일 생성
+        # 파일 ID
         # =================================================
 
         file_id = str(
@@ -746,50 +798,109 @@ def save():
 
 
         path = os.path.join(
+
             UPLOAD_FOLDER,
+
             f"{file_id}.xlsx"
+
         )
 
 
         # =================================================
-        # 엑셀 저장
+        # Excel 저장
         # =================================================
 
         with pd.ExcelWriter(
             path,
-            engine='openpyxl'
+            engine="openpyxl"
         ) as writer:
 
 
-            # -------------------------------
+            # ---------------------------------------------
             # 시트1
-            # -------------------------------
+            # ---------------------------------------------
 
             df_sheet1.to_excel(
+
                 writer,
+
                 index=False,
+
                 sheet_name="시트1"
+
             )
 
 
-            # -------------------------------
+            # ---------------------------------------------
             # 시트2
-            # -------------------------------
+            # ---------------------------------------------
 
             df_sheet2.to_excel(
+
                 writer,
+
                 index=False,
+
                 sheet_name="시트2"
+
             )
+
+
+            # ---------------------------------------------
+            # 열 너비
+            # ---------------------------------------------
+
+            workbook = writer.book
+
+
+            ws1 = workbook["시트1"]
+            ws2 = workbook["시트2"]
+
+
+            widths1 = {
+
+                "A": 20,
+                "B": 18,
+                "C": 15,
+                "D": 12,
+                "E": 30,
+                "F": 20
+
+            }
+
+
+            for col, width in widths1.items():
+
+                ws1.column_dimensions[
+                    col
+                ].width = width
+
+
+            widths2 = {
+
+                "A": 20,
+                "B": 20,
+                "C": 12,
+                "D": 30
+
+            }
+
+
+            for col, width in widths2.items():
+
+                ws2.column_dimensions[
+                    col
+                ].width = width
 
 
         # =================================================
-        # 반환
+        # 완료
         # =================================================
 
         return jsonify({
 
-            "file_id": file_id
+            "file_id":
+                file_id
 
         })
 
@@ -804,7 +915,8 @@ def save():
 
         return jsonify({
 
-            "error": str(e)
+            "error":
+                str(e)
 
         }), 500
 
@@ -813,12 +925,17 @@ def save():
 # 다운로드
 # =========================================================
 
-@app.route('/download/<file_id>')
+@app.route(
+    "/download/<file_id>"
+)
 def download(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
@@ -831,7 +948,7 @@ def download(file_id):
 
         path,
 
-        download_name="inventory.xlsx",
+        download_name="재고조사결과.xlsx",
 
         as_attachment=True
 
@@ -842,12 +959,17 @@ def download(file_id):
 # 공유 다운로드
 # =========================================================
 
-@app.route('/share/<file_id>')
+@app.route(
+    "/share/<file_id>"
+)
 def share_download(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
@@ -860,7 +982,7 @@ def share_download(file_id):
 
         path,
 
-        download_name="inventory.xlsx",
+        download_name="재고조사결과.xlsx",
 
         as_attachment=True
 
@@ -868,16 +990,22 @@ def share_download(file_id):
 
 
 # =========================================================
-# QR 생성
+# QR 코드
 # =========================================================
 
-@app.route('/qr/<file_id>')
+@app.route(
+    "/qr/<file_id>"
+)
 def generate_qr(file_id):
 
     url = (
+
         request.host_url.rstrip("/")
+
         + "/share/"
+
         + file_id
+
     )
 
 
@@ -912,14 +1040,17 @@ def generate_qr(file_id):
 # =========================================================
 
 @app.route(
-    '/delete/<file_id>',
-    methods=['POST']
+    "/delete/<file_id>",
+    methods=["POST"]
 )
 def delete_file(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
@@ -937,7 +1068,7 @@ def delete_file(file_id):
 # 실행
 # =========================================================
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     app.run(
         debug=True
