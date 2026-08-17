@@ -1,4 +1,9 @@
 /* =========================================================
+   재고조사 script.js
+========================================================= */
+
+
+/* =========================================================
    전역 변수
 ========================================================= */
 
@@ -8,6 +13,8 @@ let currentRack = "";
 
 let currentProduct = null;
 
+let currentExpiry = "";
+
 let mappingData =
     Array.isArray(mapping)
         ? mapping
@@ -15,25 +22,24 @@ let mappingData =
 
 
 /* =========================================================
-   숫자 정리
+   숫자 변환
 ========================================================= */
 
-function cleanNumber(value){
+function cleanNumber(value) {
 
-    if(
+    if (
         value === null ||
         value === undefined ||
         value === ""
-    ){
+    ) {
         return 0;
     }
 
-    let number =
-        parseFloat(
-            String(value)
-                .replace(/,/g, "")
-                .trim()
-        );
+    let number = parseFloat(
+        String(value)
+            .replace(/,/g, "")
+            .trim()
+    );
 
     return isNaN(number)
         ? 0
@@ -42,18 +48,16 @@ function cleanNumber(value){
 
 
 /* =========================================================
-   문자열
+   문자열 변환
 ========================================================= */
 
-function cleanString(value){
+function cleanString(value) {
 
-    if(
+    if (
         value === null ||
         value === undefined
-    ){
-
+    ) {
         return "";
-
     }
 
     return String(value).trim();
@@ -61,10 +65,39 @@ function cleanString(value){
 
 
 /* =========================================================
-   localStorage 저장
+   숫자 표시
 ========================================================= */
 
-function saveLocal(){
+function formatNumber(value) {
+
+    return cleanNumber(value).toLocaleString(
+        "ko-KR"
+    );
+
+}
+
+
+/* =========================================================
+   HTML 안전 처리
+========================================================= */
+
+function escapeHtml(value) {
+
+    return cleanString(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   LocalStorage 저장
+========================================================= */
+
+function saveLocal() {
 
     localStorage.setItem(
         "inventoryData",
@@ -83,34 +116,13 @@ function saveLocal(){
    메인 화면
 ========================================================= */
 
-function render(){
+function render() {
 
-    let app =
-        document.getElementById(
-            "app"
-        );
+    const app =
+        document.getElementById("app");
 
-    if(!app){
+    if (!app) {
         return;
-    }
-
-
-    let percent = 0;
-
-    if(data.length > 0){
-
-        percent =
-            Math.round(
-                (
-                    data.length
-                    /
-                    Math.max(
-                        data.length,
-                        1
-                    )
-                ) * 100
-            );
-
     }
 
 
@@ -125,7 +137,7 @@ function render(){
 
             <div class="progress-text">
 
-                등록 건수 :
+                현재 등록 건수 :
                 ${data.length}
 
             </div>
@@ -135,15 +147,41 @@ function render(){
 
                 <div
                     class="progress-bar"
-                    style="width:${percent}%"
+                    style="width:100%;"
                 ></div>
 
             </div>
 
 
-            <div id="scanArea">
+            <div id="scanArea"></div>
 
-            </div>
+        </div>
+
+
+        <div class="card">
+
+            <button
+                class="download-button"
+                onclick="download()"
+            >
+                엑셀 다운로드
+            </button>
+
+
+            <button
+                class="share-button"
+                onclick="share()"
+            >
+                엑셀 공유
+            </button>
+
+
+            <button
+                class="share-button"
+                onclick="createQR()"
+            >
+                QR코드 생성
+            </button>
 
         </div>
 
@@ -160,7 +198,7 @@ function render(){
    랙 바코드
 ========================================================= */
 
-function renderRackStep(){
+function renderRackStep() {
 
     currentStep = "rack";
 
@@ -168,8 +206,10 @@ function renderRackStep(){
 
     currentProduct = null;
 
+    currentExpiry = "";
 
-    let area =
+
+    const area =
         document.getElementById(
             "scanArea"
         );
@@ -202,7 +242,7 @@ function renderRackStep(){
     `;
 
 
-    let input =
+    const input =
         document.getElementById(
             "rackBarcode"
         );
@@ -213,9 +253,9 @@ function renderRackStep(){
 
     input.addEventListener(
         "keydown",
-        function(e){
+        function (e) {
 
-            if(e.key === "Enter"){
+            if (e.key === "Enter") {
 
                 e.preventDefault();
 
@@ -233,26 +273,26 @@ function renderRackStep(){
    랙 확인
 ========================================================= */
 
-function confirmRack(){
+function confirmRack() {
 
-    let input =
+    const input =
         document.getElementById(
             "rackBarcode"
         );
 
 
-    if(!input){
+    if (!input) {
         return;
     }
 
 
-    let rack =
+    const rack =
         cleanString(
             input.value
         );
 
 
-    if(!rack){
+    if (!rack) {
 
         alert(
             "랙 바코드를 스캔해주세요."
@@ -278,12 +318,12 @@ function confirmRack(){
    제품 바코드
 ========================================================= */
 
-function renderProductStep(){
+function renderProductStep() {
 
     currentStep = "product";
 
 
-    let area =
+    const area =
         document.getElementById(
             "scanArea"
         );
@@ -333,7 +373,7 @@ function renderProductStep(){
     `;
 
 
-    let input =
+    const input =
         document.getElementById(
             "productBarcode"
         );
@@ -344,9 +384,9 @@ function renderProductStep(){
 
     input.addEventListener(
         "keydown",
-        function(e){
+        function (e) {
 
-            if(e.key === "Enter"){
+            if (e.key === "Enter") {
 
                 e.preventDefault();
 
@@ -364,15 +404,15 @@ function renderProductStep(){
    제품 확인
 ========================================================= */
 
-function confirmProduct(){
+function confirmProduct() {
 
-    let input =
+    const input =
         document.getElementById(
             "productBarcode"
         );
 
 
-    if(!input){
+    if (!input) {
         return;
     }
 
@@ -383,7 +423,7 @@ function confirmProduct(){
         );
 
 
-    if(!barcode){
+    if (!barcode) {
 
         alert(
             "제품 바코드를 스캔해주세요."
@@ -396,16 +436,27 @@ function confirmProduct(){
     }
 
 
-    let found =
+    /*
+       PDA가 숫자 뒤에 .0을 붙이는 경우 처리
+    */
+
+    barcode =
+        barcode.replace(
+            /\.0$/,
+            ""
+        );
+
+
+    const found =
         findProduct(
             barcode
         );
 
 
-    if(!found){
+    if (!found) {
 
         alert(
-            "시트2에서 해당 바코드를 찾을 수 없습니다."
+            "시트2에서 해당 제품 바코드를 찾을 수 없습니다."
         );
 
         input.value = "";
@@ -419,7 +470,8 @@ function confirmProduct(){
 
     currentProduct = {
 
-        바코드: barcode,
+        바코드:
+            barcode,
 
         화주사:
             cleanString(
@@ -439,42 +491,50 @@ function confirmProduct(){
     };
 
 
-    renderExpStep();
+    renderExpiryStep();
 
 }
 
 
 /* =========================================================
-   바코드 검색
+   시트2 상품 검색
 ========================================================= */
 
-function findProduct(barcode){
+function findProduct(barcode) {
 
-    let target =
+    const target =
         cleanString(
             barcode
+        )
+        .replace(
+            /\.0$/,
+            ""
         );
 
 
-    for(
+    for (
         let i = 0;
         i < mappingData.length;
         i++
-    ){
+    ) {
 
-        let item =
+        const item =
             mappingData[i];
 
 
         let itemBarcode =
             cleanString(
                 item.바코드
+            )
+            .replace(
+                /\.0$/,
+                ""
             );
 
 
-        if(
+        if (
             itemBarcode === target
-        ){
+        ) {
 
             return item;
 
@@ -493,12 +553,14 @@ function findProduct(barcode){
    소비기한
 ========================================================= */
 
-function renderExpStep(){
+function renderExpiryStep() {
 
-    currentStep = "exp";
+    currentStep = "expiry";
+
+    currentExpiry = "";
 
 
-    let area =
+    const area =
         document.getElementById(
             "scanArea"
         );
@@ -580,7 +642,7 @@ function renderExpStep(){
     `;
 
 
-    let input =
+    const input =
         document.getElementById(
             "expiryDate"
         );
@@ -591,21 +653,24 @@ function renderExpStep(){
 
     input.addEventListener(
         "input",
-        handleDateInput
+        handleExpiryInput
     );
 
 
     input.addEventListener(
         "keydown",
-        function(e){
+        function (e) {
 
-            if(e.key === "Enter"){
+            if (e.key === "Enter") {
 
                 e.preventDefault();
 
-                if(
-                    input.value.length >= 8
-                ){
+                if (
+                    input.value.length === 10
+                ) {
+
+                    currentExpiry =
+                        input.value;
 
                     renderBoxStep();
 
@@ -620,18 +685,29 @@ function renderExpStep(){
 
 
 /* =========================================================
-   소비기한 자동 이동
+   소비기한 입력
+   2026
+   ↓
+   2026-
+   ↓
+   2026-08
+   ↓
+   2026-08-
+   ↓
+   2026-08-17
+   ↓
+   자동 박스수 이동
 ========================================================= */
 
-function handleDateInput(){
+function handleExpiryInput() {
 
-    let input =
+    const input =
         document.getElementById(
             "expiryDate"
         );
 
 
-    if(!input){
+    if (!input) {
         return;
     }
 
@@ -645,19 +721,23 @@ function handleDateInput(){
     let result = "";
 
 
-    if(value.length <= 4){
+    if (
+        value.length <= 4
+    ) {
 
         result = value;
 
     }
-    else if(value.length <= 6){
+    else if (
+        value.length <= 6
+    ) {
 
         result =
             value.substring(0, 4)
             +
             "-"
             +
-            value.substring(4);
+            value.substring(4, 6);
 
     }
     else {
@@ -679,15 +759,33 @@ function handleDateInput(){
     input.value = result;
 
 
-    if(value.length === 8){
+    currentExpiry = result;
+
+
+    localStorage.setItem(
+        "currentExpiry",
+        currentExpiry
+    );
+
+
+    /*
+       YYYY-MM-DD 8자리 입력 완료
+    */
+
+    if (
+        value.length === 8
+    ) {
 
         setTimeout(
-            function(){
+            function () {
+
+                currentExpiry =
+                    input.value;
 
                 renderBoxStep();
 
             },
-            100
+            150
         );
 
     }
@@ -700,19 +798,15 @@ function handleDateInput(){
    박스수
 ========================================================= */
 
-function renderBoxStep(){
+function renderBoxStep() {
 
     currentStep = "box";
 
 
-    let area =
+    const area =
         document.getElementById(
             "scanArea"
         );
-
-
-    let existing =
-        findCurrentInput();
 
 
     area.innerHTML = `
@@ -729,11 +823,37 @@ function renderBoxStep(){
             <div class="info-row">
 
                 <span class="info-label">
+                    랙
+                </span>
+
+                <span class="info-value">
+                    ${escapeHtml(currentRack)}
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
                     상품명
                 </span>
 
                 <span class="info-value">
                     ${escapeHtml(currentProduct.상품명)}
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    소비기한
+                </span>
+
+                <span class="info-value">
+                    ${escapeHtml(currentExpiry)}
                 </span>
 
             </div>
@@ -765,11 +885,12 @@ function renderBoxStep(){
         <div class="total-box">
 
             <div class="total-title">
-                현재 총수량
+                현재 계산 수량
             </div>
 
+
             <div
-                id="totalQty"
+                id="boxTotalQty"
                 class="total-value"
             >
                 0
@@ -780,7 +901,7 @@ function renderBoxStep(){
     `;
 
 
-    let input =
+    const input =
         document.getElementById(
             "boxQty"
         );
@@ -791,15 +912,15 @@ function renderBoxStep(){
 
     input.addEventListener(
         "input",
-        updateTotal
+        updateBoxTotal
     );
 
 
     input.addEventListener(
         "keydown",
-        function(e){
+        function (e) {
 
-            if(e.key === "Enter"){
+            if (e.key === "Enter") {
 
                 e.preventDefault();
 
@@ -814,33 +935,91 @@ function renderBoxStep(){
 
 
 /* =========================================================
-   5단계
-   낱개수량
+   박스수 계산
 ========================================================= */
 
-function renderEachStep(){
+function updateBoxTotal() {
 
-    currentStep = "each";
-
-
-    let area =
-        document.getElementById(
-            "scanArea"
-        );
-
-
-    let boxInput =
+    const input =
         document.getElementById(
             "boxQty"
         );
 
 
-    let boxQty =
+    if (!input) {
+        return;
+    }
+
+
+    const boxQty =
+        cleanNumber(
+            input.value
+        );
+
+
+    const unitQty =
+        cleanNumber(
+            currentProduct.입수량
+        );
+
+
+    const total =
+        unitQty *
+        boxQty;
+
+
+    const output =
+        document.getElementById(
+            "boxTotalQty"
+        );
+
+
+    if (output) {
+
+        output.innerText =
+            formatNumber(total);
+
+    }
+
+}
+
+
+/* =========================================================
+   5단계
+   낱개수량
+========================================================= */
+
+function renderEachStep() {
+
+    currentStep = "each";
+
+
+    const area =
+        document.getElementById(
+            "scanArea"
+        );
+
+
+    const boxInput =
+        document.getElementById(
+            "boxQty"
+        );
+
+
+    const boxQty =
         boxInput
             ? cleanNumber(
                 boxInput.value
             )
             : 0;
+
+
+    const boxTotal =
+        cleanNumber(
+            currentProduct.입수량
+        )
+        *
+        boxQty;
 
 
     area.innerHTML = `
@@ -857,11 +1036,37 @@ function renderEachStep(){
             <div class="info-row">
 
                 <span class="info-label">
+                    랙
+                </span>
+
+                <span class="info-value">
+                    ${escapeHtml(currentRack)}
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
                     상품명
                 </span>
 
                 <span class="info-value">
                     ${escapeHtml(currentProduct.상품명)}
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    소비기한
+                </span>
+
+                <span class="info-value">
+                    ${escapeHtml(currentExpiry)}
                 </span>
 
             </div>
@@ -909,20 +1114,19 @@ function renderEachStep(){
                 최종 수량
             </div>
 
+
             <div
                 id="finalTotalQty"
                 class="total-value"
             >
-                ${formatNumber(
-                    currentProduct.입수량
-                    * boxQty
-                )}
+                ${formatNumber(boxTotal)}
             </div>
 
         </div>
 
 
         <button
+            class="product-button"
             onclick="saveCurrentInventory()"
         >
             수량 저장
@@ -931,7 +1135,7 @@ function renderEachStep(){
     `;
 
 
-    let input =
+    const input =
         document.getElementById(
             "eachQty"
         );
@@ -948,9 +1152,9 @@ function renderEachStep(){
 
     input.addEventListener(
         "keydown",
-        function(e){
+        function (e) {
 
-            if(e.key === "Enter"){
+            if (e.key === "Enter") {
 
                 e.preventDefault();
 
@@ -965,74 +1169,24 @@ function renderEachStep(){
 
 
 /* =========================================================
-   박스 입력 중 총수량
-========================================================= */
-
-function updateTotal(){
-
-    let boxInput =
-        document.getElementById(
-            "boxQty"
-        );
-
-
-    if(!boxInput){
-        return;
-    }
-
-
-    let boxQty =
-        cleanNumber(
-            boxInput.value
-        );
-
-
-    let unitQty =
-        cleanNumber(
-            currentProduct.입수량
-        );
-
-
-    let total =
-        unitQty *
-        boxQty;
-
-
-    let output =
-        document.getElementById(
-            "totalQty"
-        );
-
-
-    if(output){
-
-        output.innerText =
-            formatNumber(total);
-
-    }
-
-}
-
-
-/* =========================================================
    최종 수량 계산
 ========================================================= */
 
-function updateFinalTotal(){
+function updateFinalTotal() {
 
-    let boxInput =
+    const boxInput =
         document.getElementById(
             "boxQty"
         );
 
 
-    let eachInput =
+    const eachInput =
         document.getElementById(
             "eachQty"
         );
 
 
-    let boxQty =
+    const boxQty =
         boxInput
             ? cleanNumber(
                 boxInput.value
@@ -1040,7 +1194,7 @@ function updateFinalTotal(){
             : 0;
 
 
-    let eachQty =
+    const eachQty =
         eachInput
             ? cleanNumber(
                 eachInput.value
@@ -1048,13 +1202,13 @@ function updateFinalTotal(){
             : 0;
 
 
-    let unitQty =
+    const unitQty =
         cleanNumber(
             currentProduct.입수량
         );
 
 
-    let total =
+    const total =
         (
             unitQty *
             boxQty
@@ -1063,13 +1217,13 @@ function updateFinalTotal(){
         eachQty;
 
 
-    let output =
+    const output =
         document.getElementById(
             "finalTotalQty"
         );
 
 
-    if(output){
+    if (output) {
 
         output.innerText =
             formatNumber(total);
@@ -1080,12 +1234,12 @@ function updateFinalTotal(){
 
 
 /* =========================================================
-   현재 재고 저장
+   수량 저장
 ========================================================= */
 
-function saveCurrentInventory(){
+function saveCurrentInventory() {
 
-    if(!currentProduct){
+    if (!currentProduct) {
 
         alert(
             "제품 정보가 없습니다."
@@ -1096,76 +1250,19 @@ function saveCurrentInventory(){
     }
 
 
-    let expiryInput =
-        document.getElementById(
-            "expiryDate"
-        );
-
-
-    /*
-       소비기한은 이전 단계 화면에서
-       이미 입력했기 때문에 화면이 변경된 경우
-       별도로 저장하기 위해 전역변수 사용
-    */
-
-    let expiry =
-        window.currentExpiry || "";
-
-
-    if(
-        expiryInput
-    ){
-
-        expiry =
-            expiryInput.value;
-
-        window.currentExpiry =
-            expiry;
-
-    }
-
-
-    /*
-       소비기한 단계에서 넘어올 때
-       값을 유지하기 위한 처리
-    */
-
-    if(
-        !window.currentExpiry
-    ){
-
-        let savedExpiry =
-            localStorage.getItem(
-                "currentExpiry"
-            );
-
-        if(savedExpiry){
-
-            window.currentExpiry =
-                savedExpiry;
-
-        }
-
-    }
-
-
-    expiry =
-        window.currentExpiry || "";
-
-
-    let boxInput =
+    const boxInput =
         document.getElementById(
             "boxQty"
         );
 
 
-    let eachInput =
+    const eachInput =
         document.getElementById(
             "eachQty"
         );
 
 
-    let boxQty =
+    const boxQty =
         boxInput
             ? cleanNumber(
                 boxInput.value
@@ -1173,7 +1270,7 @@ function saveCurrentInventory(){
             : 0;
 
 
-    let eachQty =
+    const eachQty =
         eachInput
             ? cleanNumber(
                 eachInput.value
@@ -1181,13 +1278,13 @@ function saveCurrentInventory(){
             : 0;
 
 
-    let unitQty =
+    const unitQty =
         cleanNumber(
             currentProduct.입수량
         );
 
 
-    let total =
+    const totalQty =
         (
             unitQty *
             boxQty
@@ -1196,7 +1293,11 @@ function saveCurrentInventory(){
         eachQty;
 
 
-    data.push({
+    /*
+       새로운 재고조사 데이터 생성
+    */
+
+    const newItem = {
 
         "바코드":
             currentProduct.바코드,
@@ -1205,10 +1306,10 @@ function saveCurrentInventory(){
             currentRack,
 
         "소비기한":
-            expiry,
+            currentExpiry,
 
         "수량":
-            total,
+            totalQty,
 
         "상품명":
             currentProduct.상품명,
@@ -1216,11 +1317,44 @@ function saveCurrentInventory(){
         "화주사":
             currentProduct.화주사
 
-    });
+    };
 
+
+    /*
+       배열에 등록
+    */
+
+    data.push(
+        newItem
+    );
+
+
+    /*
+       LocalStorage 저장
+    */
 
     saveLocal();
 
+
+    /*
+       현재 작업 초기화
+    */
+
+    currentRack = "";
+
+    currentProduct = null;
+
+    currentExpiry = "";
+
+
+    localStorage.removeItem(
+        "currentExpiry"
+    );
+
+
+    /*
+       저장 완료 메시지
+    */
 
     alert(
         "수량이 저장되었습니다."
@@ -1228,20 +1362,8 @@ function saveCurrentInventory(){
 
 
     /*
-       다음 입력은 다시
-       랙 바코드부터 시작
+       다시 랙 바코드부터 시작
     */
-
-    currentRack = "";
-
-    currentProduct = null;
-
-    window.currentExpiry = "";
-
-    localStorage.removeItem(
-        "currentExpiry"
-    );
-
 
     render();
 
@@ -1249,43 +1371,18 @@ function saveCurrentInventory(){
 
 
 /* =========================================================
-   소비기한 단계 진입 전에 값 저장
+   엑셀 다운로드
 ========================================================= */
 
-document.addEventListener(
-    "input",
-    function(e){
+function download() {
 
-        if(
-            e.target &&
-            e.target.id ===
-            "expiryDate"
-        ){
-
-            window.currentExpiry =
-                e.target.value;
-
-            localStorage.setItem(
-                "currentExpiry",
-                e.target.value
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   다운로드
-========================================================= */
-
-function download(){
-
-    if(data.length === 0){
+    if (
+        !Array.isArray(data) ||
+        data.length === 0
+    ) {
 
         alert(
-            "저장된 재고조사 데이터가 없습니다."
+            "아직 저장된 재고조사 데이터가 없습니다."
         );
 
         return;
@@ -1300,8 +1397,10 @@ function download(){
             method: "POST",
 
             headers: {
+
                 "Content-Type":
                     "application/json"
+
             },
 
             body:
@@ -1319,17 +1418,31 @@ function download(){
     )
 
     .then(
-        response =>
-            response.json()
+        response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "서버 오류"
+                );
+
+            }
+
+            return response.json();
+
+        }
     )
 
     .then(
         result => {
 
-            if(result.error){
+            if (
+                !result.file_id
+            ) {
 
                 alert(
-                    result.error
+                    result.error ||
+                    "파일 생성 실패"
                 );
 
                 return;
@@ -1347,10 +1460,13 @@ function download(){
     .catch(
         error => {
 
-            console.error(error);
+            console.error(
+                "다운로드 오류:",
+                error
+            );
 
             alert(
-                "다운로드 중 오류가 발생했습니다."
+                "엑셀 다운로드 중 오류가 발생했습니다."
             );
 
         }
@@ -1360,15 +1476,18 @@ function download(){
 
 
 /* =========================================================
-   공유
+   엑셀 공유
 ========================================================= */
 
-function share(){
+function share() {
 
-    if(data.length === 0){
+    if (
+        !Array.isArray(data) ||
+        data.length === 0
+    ) {
 
         alert(
-            "저장된 재고조사 데이터가 없습니다."
+            "아직 저장된 재고조사 데이터가 없습니다."
         );
 
         return;
@@ -1383,8 +1502,10 @@ function share(){
             method: "POST",
 
             headers: {
+
                 "Content-Type":
                     "application/json"
+
             },
 
             body:
@@ -1402,17 +1523,31 @@ function share(){
     )
 
     .then(
-        response =>
-            response.json()
+        response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "서버 오류"
+                );
+
+            }
+
+            return response.json();
+
+        }
     )
 
     .then(
         result => {
 
-            if(result.error){
+            if (
+                !result.file_id
+            ) {
 
                 alert(
-                    result.error
+                    result.error ||
+                    "공유 링크 생성 실패"
                 );
 
                 return;
@@ -1420,15 +1555,19 @@ function share(){
             }
 
 
-            let url =
+            const url =
                 location.origin +
                 "/share/" +
                 result.file_id;
 
 
-            if(
+            /*
+               PDA의 공유 기능
+            */
+
+            if (
                 navigator.share
-            ){
+            ) {
 
                 navigator.share({
 
@@ -1436,7 +1575,7 @@ function share(){
                         "재고조사 결과",
 
                     text:
-                        "재고조사 엑셀 다운로드",
+                        "재고조사 엑셀 파일",
 
                     url:
                         url
@@ -1446,20 +1585,24 @@ function share(){
                     () => {}
                 );
 
+
                 return;
 
             }
 
 
-            if(
+            /*
+               클립보드
+            */
+
+            if (
                 navigator.clipboard
-            ){
+            ) {
 
                 navigator.clipboard
                     .writeText(url)
-
                     .then(
-                        () => {
+                        function () {
 
                             alert(
                                 "공유 링크가 복사되었습니다."
@@ -1467,9 +1610,8 @@ function share(){
 
                         }
                     )
-
                     .catch(
-                        () => {
+                        function () {
 
                             showManualCopy(
                                 url
@@ -1493,10 +1635,13 @@ function share(){
     .catch(
         error => {
 
-            console.error(error);
+            console.error(
+                "공유 오류:",
+                error
+            );
 
             alert(
-                "공유 링크 생성 실패"
+                "공유 링크 생성 중 오류가 발생했습니다."
             );
 
         }
@@ -1506,18 +1651,18 @@ function share(){
 
 
 /* =========================================================
-   수동 복사
+   수동 링크 복사
 ========================================================= */
 
-function showManualCopy(url){
+function showManualCopy(url) {
 
-    let app =
+    const app =
         document.getElementById(
             "app"
         );
 
 
-    let div =
+    const div =
         document.createElement(
             "div"
         );
@@ -1531,7 +1676,7 @@ function showManualCopy(url){
 
         <p>
             <b>
-                공유 링크
+                엑셀 다운로드 링크
             </b>
         </p>
 
@@ -1539,6 +1684,7 @@ function showManualCopy(url){
         <input
             value="${escapeHtml(url)}"
             readonly
+            onclick="this.select()"
         >
 
     `;
@@ -1553,12 +1699,15 @@ function showManualCopy(url){
    QR 생성
 ========================================================= */
 
-function createQR(){
+function createQR() {
 
-    if(data.length === 0){
+    if (
+        !Array.isArray(data) ||
+        data.length === 0
+    ) {
 
         alert(
-            "저장된 데이터가 없습니다."
+            "아직 저장된 재고조사 데이터가 없습니다."
         );
 
         return;
@@ -1573,8 +1722,10 @@ function createQR(){
             method: "POST",
 
             headers: {
+
                 "Content-Type":
                     "application/json"
+
             },
 
             body:
@@ -1599,10 +1750,13 @@ function createQR(){
     .then(
         result => {
 
-            if(result.error){
+            if (
+                !result.file_id
+            ) {
 
                 alert(
-                    result.error
+                    result.error ||
+                    "QR 생성 실패"
                 );
 
                 return;
@@ -1610,25 +1764,25 @@ function createQR(){
             }
 
 
-            let qrUrl =
+            const qrUrl =
                 "/qr/" +
                 result.file_id;
 
 
-            let old =
+            const old =
                 document.getElementById(
                     "qr-box"
                 );
 
 
-            if(old){
+            if (old) {
 
                 old.remove();
 
             }
 
 
-            let div =
+            const div =
                 document.createElement(
                     "div"
                 );
@@ -1685,7 +1839,9 @@ function createQR(){
                 .getElementById(
                     "app"
                 )
-                .appendChild(div);
+                .appendChild(
+                    div
+                );
 
         }
     )
@@ -1693,10 +1849,13 @@ function createQR(){
     .catch(
         error => {
 
-            console.error(error);
+            console.error(
+                "QR 오류:",
+                error
+            );
 
             alert(
-                "QR 생성 실패"
+                "QR 생성 중 오류가 발생했습니다."
             );
 
         }
@@ -1709,15 +1868,15 @@ function createQR(){
    QR 닫기
 ========================================================= */
 
-function closeQR(){
+function closeQR() {
 
-    let box =
+    const box =
         document.getElementById(
             "qr-box"
         );
 
 
-    if(box){
+    if (box) {
 
         box.remove();
 
@@ -1727,23 +1886,26 @@ function closeQR(){
 
 
 /* =========================================================
-   신규 재고
+   신규 재고 UI
 ========================================================= */
 
-function toggleNewItem(){
+function toggleNewItem() {
 
-    let box =
+    const box =
         document.getElementById(
             "newItemBox"
         );
 
 
-    if(
-        box.style.display ===
-        "none"
-        ||
+    if (!box) {
+        return;
+    }
+
+
+    if (
+        box.style.display === "none" ||
         box.style.display === ""
-    ){
+    ) {
 
         box.style.display =
             "block";
@@ -1763,49 +1925,49 @@ function toggleNewItem(){
    신규 재고 등록
 ========================================================= */
 
-function addNewItem(){
+function addNewItem() {
 
-    let rack =
+    const rack =
         cleanString(
             document.getElementById(
                 "new_rack"
-            ).value
+            )?.value
         );
 
 
-    let barcode =
+    const barcode =
         cleanString(
             document.getElementById(
                 "new_barcode"
-            ).value
+            )?.value
         );
 
 
-    let expiry =
+    const expiry =
         cleanString(
             document.getElementById(
                 "new_exp"
-            ).value
+            )?.value
         );
 
 
-    let boxQty =
+    const boxQty =
         cleanNumber(
             document.getElementById(
                 "new_box"
-            ).value
+            )?.value
         );
 
 
-    let eachQty =
+    const eachQty =
         cleanNumber(
             document.getElementById(
                 "new_each"
-            ).value
+            )?.value
         );
 
 
-    if(!rack){
+    if (!rack) {
 
         alert(
             "랙 바코드를 입력해주세요."
@@ -1816,7 +1978,7 @@ function addNewItem(){
     }
 
 
-    if(!barcode){
+    if (!barcode) {
 
         alert(
             "제품 바코드를 입력해주세요."
@@ -1827,31 +1989,44 @@ function addNewItem(){
     }
 
 
-    let found =
+    /*
+       시트2에서 제품 검색
+    */
+
+    const found =
         findProduct(
             barcode
         );
 
 
-    let productName =
-        found
-            ? cleanString(found.상품명)
-            : "";
+    let productName = "";
+
+    let owner = "";
+
+    let unitQty = 0;
 
 
-    let owner =
-        found
-            ? cleanString(found.화주사)
-            : "";
+    if (found) {
+
+        productName =
+            cleanString(
+                found.상품명
+            );
+
+        owner =
+            cleanString(
+                found.화주사
+            );
+
+        unitQty =
+            cleanNumber(
+                found.입수량
+            );
+
+    }
 
 
-    let unitQty =
-        found
-            ? cleanNumber(found.입수량)
-            : 0;
-
-
-    let total =
+    const totalQty =
         (
             unitQty *
             boxQty
@@ -1872,7 +2047,7 @@ function addNewItem(){
             expiry,
 
         "수량":
-            total,
+            totalQty,
 
         "상품명":
             productName,
@@ -1894,97 +2069,185 @@ function addNewItem(){
     );
 
 
-    document.getElementById(
-        "new_rack"
-    ).value = "";
+    /*
+       입력 초기화
+    */
 
+    const ids = [
 
-    document.getElementById(
-        "new_barcode"
-    ).value = "";
-
-
-    document.getElementById(
-        "new_exp"
-    ).value = "";
-
-
-    document.getElementById(
-        "new_box"
-    ).value = "";
-
-
-    document.getElementById(
+        "new_rack",
+        "new_barcode",
+        "new_exp",
+        "new_box",
         "new_each"
-    ).value = "";
+
+    ];
 
 
-    document.getElementById(
-        "newItemBox"
-    ).style.display =
-        "none";
+    ids.forEach(
+        function (id) {
 
-}
-
-
-/* =========================================================
-   숫자 표시
-========================================================= */
-
-function formatNumber(value){
-
-    let number =
-        cleanNumber(value);
+            const element =
+                document.getElementById(
+                    id
+                );
 
 
-    return number.toLocaleString(
-        "ko-KR"
+            if (element) {
+
+                element.value = "";
+
+            }
+
+        }
     );
 
-}
 
-
-/* =========================================================
-   HTML 안전 처리
-========================================================= */
-
-function escapeHtml(value){
-
-    let text =
-        cleanString(value);
-
-
-    return text
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
+    const box =
+        document.getElementById(
+            "newItemBox"
         );
 
+
+    if (box) {
+
+        box.style.display =
+            "none";
+
+    }
+
+
+    render();
+
 }
 
 
 /* =========================================================
-   현재 입력 확인
+   페이지 로딩 후
 ========================================================= */
 
-function findCurrentInput(){
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    return null;
+        /*
+           서버에서 전달받은 mapping이 없으면
+           localStorage의 기존 매핑 사용
+        */
 
-}
+        const savedMapping =
+            localStorage.getItem(
+                "mappingData"
+            );
+
+
+        if (
+            savedMapping &&
+            mappingData.length === 0
+        ) {
+
+            try {
+
+                mappingData =
+                    JSON.parse(
+                        savedMapping
+                    );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "mapping 복원 실패:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        /*
+           기존 조사 데이터 복원
+        */
+
+        const savedData =
+            localStorage.getItem(
+                "inventoryData"
+            );
+
+
+        if (
+            savedData &&
+            data.length === 0
+        ) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(
+                        savedData
+                    );
+
+
+                if (
+                    Array.isArray(parsed) &&
+                    parsed.length > 0
+                ) {
+
+                    data = parsed;
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "재고 데이터 복원 실패:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        /*
+           데이터가 있으면
+           업로드 폼 숨김
+        */
+
+        if (
+            data.length > 0
+        ) {
+
+            const uploadForm =
+                document.getElementById(
+                    "uploadForm"
+                );
+
+
+            if (uploadForm) {
+
+                uploadForm.style.display =
+                    "none";
+
+            }
+
+
+            const newItemBtn =
+                document.getElementById(
+                    "newItemBtn"
+                );
+
+
+            if (newItemBtn) {
+
+                newItemBtn.style.display =
+                    "block";
+
+            }
+
+        }
+
+    }
+);
