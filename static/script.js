@@ -1,4 +1,19 @@
 /* =========================================================
+   전역 변수
+========================================================= */
+
+let inventoryData = [];
+
+let currentRack = "";
+
+let currentProduct = null;
+
+let mappingData = [];
+
+let inventoryCount = 0;
+
+
+/* =========================================================
    숫자 처리
 ========================================================= */
 
@@ -11,7 +26,6 @@ function cleanNumber(value){
     ){
 
         return 0;
-
     }
 
 
@@ -20,179 +34,132 @@ function cleanNumber(value){
             .replace(/,/g, "")
             .trim()
     ) || 0;
-
 }
 
 
 /* =========================================================
-   문자열
+   페이지 시작
 ========================================================= */
 
-function cleanText(value){
+window.onload = function(){
 
-    if(
-        value === null ||
-        value === undefined
-    ){
-
-        return "";
-
-    }
-
-    return String(value).trim();
-
-}
+    mappingData = Array.isArray(mapping)
+        ? mapping
+        : [];
 
 
-/* =========================================================
-   숫자 표시
-========================================================= */
-
-function formatNumber(value){
-
-    const number =
-        cleanNumber(value);
-
-
-    if(
-        Number.isInteger(number)
-    ){
-
-        return number.toLocaleString();
-
-    }
-
-
-    return number.toLocaleString(
-        undefined,
-        {
-            maximumFractionDigits: 2
-        }
-    );
-
-}
-
-
-/* =========================================================
-   HTML 안전 처리
-========================================================= */
-
-function escapeHtml(value){
-
-    if(
-        value === null ||
-        value === undefined
-    ){
-
-        return "";
-
-    }
-
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
+    // 이전 조사 데이터 불러오기
+    const saved =
+        localStorage.getItem(
+            "inventoryData"
         );
 
-}
+
+    if(saved){
+
+        try{
+
+            const oldData =
+                JSON.parse(saved);
+
+
+            if(
+                Array.isArray(oldData)
+                &&
+                oldData.length > 0
+            ){
+
+                const result =
+                    confirm(
+                        "이전에 조사한 데이터가 있습니다.\n\n" +
+                        "이어서 조사하시겠습니까?"
+                    );
+
+
+                if(result){
+
+                    inventoryData =
+                        oldData;
+
+                    currentRack =
+                        localStorage.getItem(
+                            "currentRack"
+                        ) || "";
+
+
+                }else{
+
+                    localStorage.removeItem(
+                        "inventoryData"
+                    );
+
+                    localStorage.removeItem(
+                        "currentRack"
+                    );
+
+                    inventoryData = [];
+
+                    currentRack = "";
+                }
+            }
+
+        }catch(e){
+
+            console.error(e);
+
+            localStorage.removeItem(
+                "inventoryData"
+            );
+        }
+    }
+
+
+    // 상품 마스터가 있으면 조사 화면
+    if(mappingData.length > 0){
+
+        document
+            .getElementById("uploadBox")
+            .classList.add("hidden");
+
+        showRackScreen();
+
+        return;
+    }
+
+
+    // 마스터가 없고 기존 데이터가 있으면
+    // 조사 화면
+    if(inventoryData.length > 0){
+
+        document
+            .getElementById("uploadBox")
+            .classList.add("hidden");
+
+        showRackScreen();
+
+    }
+
+};
 
 
 /* =========================================================
-   로컬 저장
+   데이터 저장
 ========================================================= */
 
-function saveLocal(){
+function saveLocalData(){
 
     localStorage.setItem(
         "inventoryData",
-        JSON.stringify(data)
+        JSON.stringify(
+            inventoryData
+        )
     );
 
 
     localStorage.setItem(
-        "inventoryMasterData",
-        JSON.stringify(masterData)
+        "currentRack",
+        currentRack
     );
-
-}
-
-
-/* =========================================================
-   완료 개수
-========================================================= */
-
-function updateCompletedCount(){
-
-    completedCount =
-        data.length;
-
-}
-
-
-/* =========================================================
-   메인 렌더링
-========================================================= */
-
-function render(){
-
-    updateCompletedCount();
-
-
-    /*
-        아직 랙을 선택하지 않은 경우
-    */
-
-    if(!currentRack){
-
-        renderRackScan();
-
-        return;
-
-    }
-
-
-    /*
-        제품을 선택한 경우
-    */
-
-    if(currentProduct){
-
-        renderQuantity();
-
-        return;
-
-    }
-
-
-    /*
-        랙 선택 후
-        제품 스캔
-    */
-
-    renderProductScan();
-
 }
 
 
@@ -200,143 +167,126 @@ function render(){
    랙 스캔 화면
 ========================================================= */
 
-function renderRackScan(){
+function showRackScreen(){
 
     currentProduct = null;
 
 
-    const app =
-        document.getElementById(
-            "app"
-        );
-
-
-    app.innerHTML = `
+    document
+        .getElementById("app")
+        .innerHTML = `
 
         <div class="card">
 
-            <div class="scan-title">
+            <h2>
+                랙 바코드 스캔
+            </h2>
 
-                랙 바코드를 스캔하세요
-
-            </div>
-
-
-            <div class="scan-message">
-
-                PDA 스캐너로 랙 바코드를
-                스캔해주세요.
-
-            </div>
+            <p>
+                현재 재고조사할 랙의 바코드를 스캔하세요.
+            </p>
 
 
-            <input
-                id="rackInput"
-                placeholder="랙 바코드"
-                autocomplete="off"
-                autofocus
-            >
+            <div class="scan-box">
 
-
-            <button
-                onclick="confirmRack()"
-            >
-
-                랙 확인
-
-            </button>
-
-
-            <div class="quantity-result">
-
-                <div class="quantity-result-label">
-
-                    현재 조사 건수
-
+                <div class="scan-title">
+                    랙 바코드
                 </div>
 
 
-                <div class="quantity-result-value">
+                <input
+                    id="rackBarcode"
+                    type="text"
+                    inputmode="none"
+                    autocomplete="off"
+                    placeholder="랙 바코드 스캔"
+                    onkeydown="rackKeyDown(event)"
+                >
 
-                    ${completedCount}
 
-                </div>
+                <button
+                    class="rack-btn"
+                    onclick="confirmRack()"
+                >
+                    랙 확인
+                </button>
 
             </div>
 
 
             ${
-                completedCount > 0
+                currentRack
                 ?
-
                 `
+                <div class="status">
 
-                <button
-                    class="download-button"
-                    onclick="download()"
-                >
-                    엑셀 다운로드
-                </button>
+                    현재 랙:
+                    <b>${escapeHtml(currentRack)}</b>
 
-
-                <button
-                    class="share-button"
-                    onclick="share()"
-                >
-                    엑셀 공유
-                </button>
-
-
-                <button
-                    class="qr-button"
-                    onclick="createQR()"
-                >
-                    QR코드 생성
-                </button>
-
+                </div>
                 `
-
                 :
-
                 ""
-
             }
+
+
+            <div class="result-list">
+
+                <p>
+                    <b>
+                        현재까지 조사:
+                        ${inventoryData.length}건
+                    </b>
+                </p>
+
+            </div>
+
+
+            <button
+                class="download-btn"
+                onclick="download()"
+            >
+                엑셀 다운로드
+            </button>
+
+
+            <button
+                class="share-btn"
+                onclick="share()"
+            >
+                엑셀 공유
+            </button>
+
+
+            <button
+                class="qr-btn"
+                onclick="createQR()"
+            >
+                QR코드 생성
+            </button>
 
         </div>
-
-    `;
-
-
-    const input =
-        document.getElementById(
-            "rackInput"
-        );
+        `;
 
 
-    if(input){
+    focusInput(
+        "rackBarcode"
+    );
+}
 
-        input.focus();
 
+/* =========================================================
+   랙 바코드 Enter
+========================================================= */
 
-        input.addEventListener(
-            "keydown",
-            function(event){
+function rackKeyDown(event){
 
-                if(
-                    event.key === "Enter"
-                ){
+    if(event.key === "Enter"){
 
-                    event.preventDefault();
+        event.preventDefault();
 
-                    confirmRack();
-
-                }
-
-            }
-        );
-
+        confirmRack();
     }
-
 }
 
 
@@ -348,21 +298,18 @@ function confirmRack(){
 
     const input =
         document.getElementById(
-            "rackInput"
+            "rackBarcode"
         );
 
 
     if(!input){
 
         return;
-
     }
 
 
     const rack =
-        cleanText(
-            input.value
-        );
+        input.value.trim();
 
 
     if(!rack){
@@ -371,243 +318,159 @@ function confirmRack(){
             "랙 바코드를 스캔해주세요."
         );
 
-        input.focus();
+        focusInput(
+            "rackBarcode"
+        );
 
         return;
-
     }
 
 
-    currentRack =
-        rack;
+    currentRack = rack;
 
 
-    currentProduct =
-        null;
+    saveLocalData();
 
 
-    saveLocal();
-
-
-    render();
-
+    showProductScreen();
 }
 
 
 /* =========================================================
-   제품 스캔 화면
+   제품 바코드 화면
 ========================================================= */
 
-function renderProductScan(){
+function showProductScreen(){
 
-    const app =
-        document.getElementById(
-            "app"
-        );
+    currentProduct = null;
 
 
-    app.innerHTML = `
+    const progress =
+        inventoryData.length;
+
+
+    document
+        .getElementById("app")
+        .innerHTML = `
 
         <div class="card">
 
+            <p>
+                <b>현재 랙:</b>
+                ${escapeHtml(currentRack)}
+            </p>
 
-            <div class="current-rack">
 
-                <div class="current-rack-title">
+            <div class="scan-box">
 
-                    현재 랙
-
+                <div class="scan-title">
+                    제품 바코드 스캔
                 </div>
 
 
-                <div class="current-rack-value">
-
-                    ${escapeHtml(
-                        currentRack
-                    )}
-
-                </div>
-
-            </div>
-
-
-            <div class="scan-title">
-
-                제품 바코드를 스캔하세요
-
-            </div>
+                <input
+                    id="productBarcode"
+                    type="text"
+                    inputmode="none"
+                    autocomplete="off"
+                    placeholder="제품 바코드 스캔"
+                    onkeydown="productKeyDown(event)"
+                >
 
 
-            <div class="scan-message">
-
-                제품을 스캔하면
-                상품정보가 자동으로 표시됩니다.
+                <button
+                    class="product-check-btn"
+                    onclick="confirmProduct()"
+                >
+                    제품확인
+                </button>
 
             </div>
 
 
-            <input
-                id="productInput"
-                placeholder="제품 바코드"
-                inputmode="numeric"
-                autocomplete="off"
-                autofocus
-            >
+            <div class="status">
+
+                현재까지 조사:
+                <b>${progress}</b>건
+
+            </div>
 
 
             <button
-                onclick="confirmProduct()"
+                class="download-btn"
+                onclick="download()"
             >
-
-                제품 확인
-
+                엑셀 다운로드
             </button>
 
 
             <button
-                class="gray-button"
+                class="share-btn"
+                onclick="share()"
+            >
+                엑셀 공유
+            </button>
+
+
+            <button
+                class="qr-btn"
+                onclick="createQR()"
+            >
+                QR코드 생성
+            </button>
+
+
+            <button
                 onclick="changeRack()"
             >
-
-                다른 랙
-
+                랙 변경
             </button>
 
-
-            <div class="quantity-result">
-
-                <div class="quantity-result-label">
-
-                    조사 완료 건수
-
-                </div>
-
-
-                <div class="quantity-result-value">
-
-                    ${completedCount}
-
-                </div>
-
-            </div>
-
-
-            ${
-                completedCount > 0
-                ?
-
-                `
-
-                <button
-                    class="download-button"
-                    onclick="download()"
-                >
-
-                    엑셀 다운로드
-
-                </button>
-
-
-                <button
-                    class="share-button"
-                    onclick="share()"
-                >
-
-                    엑셀 공유
-
-                </button>
-
-                `
-
-                :
-
-                ""
-
-            }
-
         </div>
-
-    `;
-
-
-    const input =
-        document.getElementById(
-            "productInput"
-        );
+        `;
 
 
-    if(input){
-
-        input.focus();
-
-
-        input.addEventListener(
-            "keydown",
-            function(event){
-
-                if(
-                    event.key === "Enter"
-                ){
-
-                    event.preventDefault();
-
-                    confirmProduct();
-
-                }
-
-            }
-        );
-
-    }
-
+    focusInput(
+        "productBarcode"
+    );
 }
 
 
 /* =========================================================
-   제품 바코드 검색
+   제품 바코드 Enter
 ========================================================= */
 
-function findMasterProduct(
-    barcode
-){
+function productKeyDown(event){
 
-    const normalized =
-        cleanText(barcode);
+    if(event.key === "Enter"){
 
+        event.preventDefault();
 
-    return masterData.find(
-        item =>
-            cleanText(
-                item["바코드"]
-            ) === normalized
-    );
-
+        confirmProduct();
+    }
 }
 
 
 /* =========================================================
-   제품 확인
+   제품 바코드 확인
 ========================================================= */
 
 function confirmProduct(){
 
     const input =
         document.getElementById(
-            "productInput"
+            "productBarcode"
         );
 
 
     if(!input){
 
         return;
-
     }
 
 
     const barcode =
-        cleanText(
-            input.value
-        );
+        input.value.trim();
 
 
     if(!barcode){
@@ -616,90 +479,65 @@ function confirmProduct(){
             "제품 바코드를 스캔해주세요."
         );
 
-        input.focus();
+        focusInput(
+            "productBarcode"
+        );
 
         return;
-
     }
 
 
-    /*
-        시트2에서 바코드 검색
-    */
+    // =====================================================
+    // 상품 마스터에서 바코드 검색
+    // =====================================================
 
-    const master =
-        findMasterProduct(
-            barcode
+    const product =
+        mappingData.find(
+            item => {
+
+                return String(
+                    item["바코드"] ?? ""
+                ).trim()
+                === barcode;
+
+            }
         );
 
 
-    if(!master){
+    if(!product){
 
         alert(
-            "시트2에 등록되지 않은 제품입니다.\n\n" +
-            "바코드 : " +
+            "등록되지 않은 제품입니다.\n\n" +
+            "바코드: " +
             barcode
         );
 
 
-        input.value = "";
-
-        input.focus();
+        input.select();
 
         return;
-
     }
 
-
-    /*
-        상품정보 자동 매칭
-    */
 
     currentProduct = {
 
-        "바코드":
-            cleanText(
-                master["바코드"]
-            ),
-
-        "랙":
-            currentRack,
-
-        "소비기한":
-            "",
-
-        "수량":
-            0,
-
-        "상품명":
-            cleanText(
-                master["상품명"]
-            ),
+        "바코드": barcode,
 
         "화주사":
-            cleanText(
-                master["화주사"]
-            ),
+            product["화주사"] || "",
 
         "입수량":
             cleanNumber(
-                master["입수량"]
+                product["입수량"]
             ),
 
-        "박스수량":
-            "",
-
-        "낱개수량":
-            "",
-
-        "실수량":
-            0
+        "상품명":
+            product["상품명"] || ""
 
     };
 
 
-    renderQuantity();
-
+    showQuantityScreen();
 }
 
 
@@ -707,54 +545,38 @@ function confirmProduct(){
    수량 입력 화면
 ========================================================= */
 
-function renderQuantity(){
+function showQuantityScreen(){
 
-    if(!currentProduct){
-
-        renderProductScan();
-
-        return;
-
-    }
-
-
-    const item =
+    const product =
         currentProduct;
 
 
-    const unitQty =
-        cleanNumber(
-            item["입수량"]
-        );
-
-
-    const app =
-        document.getElementById(
-            "app"
-        );
-
-
-    app.innerHTML = `
+    document
+        .getElementById("app")
+        .innerHTML = `
 
         <div class="card">
 
 
-            <div class="current-rack">
+            <!-- 진행 정보 -->
 
-                <div class="current-rack-title">
+            <p>
 
-                    현재 랙
+                <b>현재 랙:</b>
+                ${escapeHtml(currentRack)}
 
-                </div>
+            </p>
 
 
-                <div class="current-rack-value">
+            <!-- 상품 정보 -->
 
-                    ${escapeHtml(
-                        item["랙"]
-                    )}
+            <div class="info-row">
 
-                </div>
+                <span class="info-label">
+                    바코드:
+                </span>
+
+                ${escapeHtml(product["바코드"])}
 
             </div>
 
@@ -762,17 +584,10 @@ function renderQuantity(){
             <div class="info-row">
 
                 <span class="info-label">
-                    바코드
+                    화주사:
                 </span>
 
-
-                <span class="info-value">
-
-                    ${escapeHtml(
-                        item["바코드"]
-                    )}
-
-                </span>
+                ${escapeHtml(product["화주사"])}
 
             </div>
 
@@ -780,17 +595,10 @@ function renderQuantity(){
             <div class="info-row">
 
                 <span class="info-label">
-                    상품명
+                    상품명:
                 </span>
 
-
-                <span class="info-value">
-
-                    ${escapeHtml(
-                        item["상품명"]
-                    )}
-
-                </span>
+                ${escapeHtml(product["상품명"])}
 
             </div>
 
@@ -798,277 +606,99 @@ function renderQuantity(){
             <div class="info-row">
 
                 <span class="info-label">
-                    화주사
+                    입수량:
                 </span>
 
-
-                <span class="info-value">
-
-                    ${escapeHtml(
-                        item["화주사"]
-                    )}
-
-                </span>
-
-            </div>
-
-
-            <div class="info-row">
-
-                <span class="info-label">
-                    입수량
-                </span>
-
-
-                <span class="info-value">
-
-                    ${formatNumber(
-                        unitQty
-                    )}
-
-                </span>
+                ${product["입수량"]}
 
             </div>
 
 
             <!-- 소비기한 -->
 
-            <div class="quantity-title">
-
+            <div class="qty-title">
                 소비기한
-
             </div>
 
 
             <input
-                id="expiryInput"
-                type="date"
-                value="${escapeHtml(
-                    item["소비기한"]
-                )}"
+                id="expiry"
+                type="text"
+                placeholder="예: 2026-12-31"
+                autocomplete="off"
             >
 
 
-            <!-- 수량 -->
+            <!-- 박스 수 -->
 
-            <div class="quantity-title">
-
-                수량 입력
-
+            <div class="qty-title">
+                박스 수량
             </div>
 
 
-            ${
-                unitQty > 0
-
-                ?
-
-                `
-
-                <input
-                    id="boxInput"
-                    type="number"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="박스 수량"
-                    autocomplete="off"
-                >
+            <input
+                id="boxQty"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="박스 수량"
+                oninput="calculateTotal()"
+                onkeydown="quantityKeyDown(event)"
+            >
 
 
-                <input
-                    id="eachInput"
-                    type="number"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="낱개 수량"
-                    autocomplete="off"
-                >
+            <!-- 낱개 수 -->
 
-                `
-
-                :
-
-                `
-
-                <input
-                    id="eachInput"
-                    type="number"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="실제 수량"
-                    autocomplete="off"
-                >
-
-                `
-            }
+            <div class="qty-title">
+                낱개 수량
+            </div>
 
 
-            <div class="quantity-result">
+            <input
+                id="eachQty"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="낱개 수량"
+                oninput="calculateTotal()"
+                onkeydown="quantityKeyDown(event)"
+            >
 
-                <div class="quantity-result-label">
 
-                    실수량
+            <!-- 총 수량 -->
 
-                </div>
+            <div class="qty-result">
 
-
-                <div
-                    id="realQty"
-                    class="quantity-result-value"
-                >
-
+                총 수량:
+                <span id="totalQty">
                     0
-
-                </div>
+                </span>
 
             </div>
 
 
             <button
-                onclick="registerProduct()"
+                class="save-qty-btn"
+                onclick="saveQuantity()"
             >
-
-                수량 등록
-
+                수량 저장
             </button>
 
 
             <button
-                class="gray-button"
                 onclick="cancelProduct()"
             >
-
-                다시 스캔
-
+                제품 취소
             </button>
 
+
         </div>
-
-    `;
-
-
-    /*
-        소비기한
-    */
-
-    const expiry =
-        document.getElementById(
-            "expiryInput"
-        );
+        `;
 
 
-    /*
-        박스
-    */
-
-    const box =
-        document.getElementById(
-            "boxInput"
-        );
-
-
-    /*
-        낱개
-    */
-
-    const each =
-        document.getElementById(
-            "eachInput"
-        );
-
-
-    if(box){
-
-        box.addEventListener(
-            "input",
-            calculateQuantity
-        );
-
-
-        box.addEventListener(
-            "keydown",
-            function(event){
-
-                if(
-                    event.key === "Enter"
-                ){
-
-                    event.preventDefault();
-
-                    if(each){
-
-                        each.focus();
-
-                    }
-
-                }
-
-            }
-        );
-
-    }
-
-
-    if(each){
-
-        each.addEventListener(
-            "input",
-            calculateQuantity
-        );
-
-
-        each.addEventListener(
-            "keydown",
-            function(event){
-
-                if(
-                    event.key === "Enter"
-                ){
-
-                    event.preventDefault();
-
-                    registerProduct();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /*
-        소비기한 변경
-    */
-
-    if(expiry){
-
-        expiry.addEventListener(
-            "change",
-            function(){
-
-                currentProduct["소비기한"] =
-                    expiry.value;
-
-            }
-        );
-
-    }
-
-
-    /*
-        처음에는 소비기한에 포커스
-    */
-
-    if(expiry){
-
-        expiry.focus();
-
-    }
-
-
-    calculateQuantity();
-
+    focusInput(
+        "boxQty"
+    );
 }
 
 
@@ -1076,13 +706,28 @@ function renderQuantity(){
    수량 계산
 ========================================================= */
 
-function calculateQuantity(){
+function calculateTotal(){
 
     if(!currentProduct){
 
         return;
-
     }
+
+
+    const boxQty =
+        cleanNumber(
+            document.getElementById(
+                "boxQty"
+            )?.value
+        );
+
+
+    const eachQty =
+        cleanNumber(
+            document.getElementById(
+                "eachQty"
+            )?.value
+        );
 
 
     const unitQty =
@@ -1091,80 +736,57 @@ function calculateQuantity(){
         );
 
 
-    let realQty = 0;
+    const total =
+        (unitQty * boxQty)
+        + eachQty;
 
 
-    /*
-        입수량 있음
-    */
-
-    if(unitQty > 0){
-
-        const box =
-            cleanNumber(
-                document.getElementById(
-                    "boxInput"
-                )?.value
-            );
-
-
-        const each =
-            cleanNumber(
-                document.getElementById(
-                    "eachInput"
-                )?.value
-            );
-
-
-        realQty =
-            (
-                unitQty *
-                box
-            ) + each;
-
-
-        currentProduct["박스수량"] =
-            box;
-
-
-        currentProduct["낱개수량"] =
-            each;
-
-    }
-
-
-    /*
-        입수량 없음
-    */
-
-    else{
-
-        realQty =
-            cleanNumber(
-                document.getElementById(
-                    "eachInput"
-                )?.value
-            );
-
-    }
-
-
-    currentProduct["실수량"] =
-        realQty;
-
-
-    const display =
+    const totalElement =
         document.getElementById(
-            "realQty"
+            "totalQty"
         );
 
 
-    if(display){
+    if(totalElement){
 
-        display.innerText =
-            formatNumber(
-                realQty
-            );
+        totalElement.innerText =
+            total;
+    }
+}
+
+
+/* =========================================================
+   수량 입력 Enter
+========================================================= */
+
+function quantityKeyDown(event){
+
+    if(event.key !== "Enter"){
+
+        return;
+    }
+
+
+    event.preventDefault();
+
+
+    const target =
+        event.target;
+
+
+    if(target.id === "boxQty"){
+
+        focusInput(
+            "eachQty"
+        );
+
+        return;
+    }
+
+
+    if(target.id === "eachQty"){
+
+        saveQuantity();
 
     }
 
@@ -1172,138 +794,90 @@ function calculateQuantity(){
 
 
 /* =========================================================
-   상품 등록
+   수량 저장
 ========================================================= */
 
-function registerProduct(){
+function saveQuantity(){
 
     if(!currentProduct){
 
         return;
-
     }
 
 
-    /*
-        소비기한
-    */
+    const boxQty =
+        cleanNumber(
+            document.getElementById(
+                "boxQty"
+            )?.value
+        );
+
+
+    const eachQty =
+        cleanNumber(
+            document.getElementById(
+                "eachQty"
+            )?.value
+        );
+
+
+    const totalQty =
+        (
+            cleanNumber(
+                currentProduct["입수량"]
+            )
+            *
+            boxQty
+        )
+        +
+        eachQty;
+
 
     const expiry =
         document.getElementById(
-            "expiryInput"
-        );
+            "expiry"
+        )?.value.trim() || "";
 
 
-    if(!expiry || !expiry.value){
+    // =====================================================
+    // 실제 조사 데이터 등록
+    // =====================================================
 
-        alert(
-            "소비기한을 입력해주세요."
-        );
-
-        if(expiry){
-
-            expiry.focus();
-
-        }
-
-        return;
-
-    }
-
-
-    currentProduct["소비기한"] =
-        expiry.value;
-
-
-    /*
-        수량 다시 계산
-    */
-
-    calculateQuantity();
-
-
-    const realQty =
-        cleanNumber(
-            currentProduct["실수량"]
-        );
-
-
-    /*
-        수량 확인
-    */
-
-    if(realQty < 0){
-
-        alert(
-            "수량을 확인해주세요."
-        );
-
-        return;
-
-    }
-
-
-    /*
-        조사 결과에 새 행 추가
-    */
-
-    data.push({
+    inventoryData.push({
 
         "바코드":
             currentProduct["바코드"],
 
         "랙":
-            currentProduct["랙"],
+            currentRack,
 
         "소비기한":
-            currentProduct["소비기한"],
+            expiry,
 
         "수량":
-            realQty,
+            totalQty,
 
-        "상품명":
+        "품명":
             currentProduct["상품명"],
 
         "화주사":
-            currentProduct["화주사"],
-
-        "입수량":
-            currentProduct["입수량"],
-
-        "박스수량":
-            currentProduct["박스수량"],
-
-        "낱개수량":
-            currentProduct["낱개수량"]
+            currentProduct["화주사"]
 
     });
 
 
-    /*
-        로컬 저장
-    */
-
-    saveLocal();
+    inventoryCount =
+        inventoryData.length;
 
 
-    updateCompletedCount();
+    saveLocalData();
 
 
-    /*
-        현재 제품 초기화
-    */
+    // =====================================================
+    // 다음 제품
+    // =====================================================
 
-    currentProduct =
-        null;
-
-
-    /*
-        계속 같은 랙에서
-        다음 제품 스캔
-    */
-
-    renderProductScan();
-
+    showProductScreen();
 }
 
 
@@ -1313,148 +887,63 @@ function registerProduct(){
 
 function cancelProduct(){
 
-    currentProduct =
-        null;
+    currentProduct = null;
 
-
-    renderProductScan();
-
+    showProductScreen();
 }
 
 
 /* =========================================================
-   다른 랙
+   랙 변경
 ========================================================= */
 
 function changeRack(){
 
-    currentRack =
-        "";
+    currentRack = "";
 
+    saveLocalData();
 
-    currentProduct =
-        null;
-
-
-    renderRackScan();
-
+    showRackScreen();
 }
 
 
 /* =========================================================
-   조사 결과 다운로드
+   다운로드
 ========================================================= */
 
 function download(){
 
-    if(data.length === 0){
+    if(inventoryData.length === 0){
 
         alert(
-            "아직 조사한 데이터가 없습니다."
+            "재고조사 데이터가 없습니다."
         );
 
         return;
-
     }
 
 
-    saveExcel()
+    saveToServer()
         .then(
             fileId => {
 
-                if(!fileId){
-
-                    return;
-
-                }
-
-
                 window.location =
-                    "/download/" +
-                    fileId;
+                    "/download/"
+                    + fileId;
+
+            }
+        )
+        .catch(
+            error => {
+
+                console.error(error);
+
+                alert(
+                    "엑셀 저장에 실패했습니다."
+                );
 
             }
         );
-
-}
-
-
-/* =========================================================
-   서버 저장 공통
-========================================================= */
-
-function saveExcel(){
-
-    return fetch(
-        "/save",
-        {
-
-            method: "POST",
-
-            headers: {
-
-                "Content-Type":
-                    "application/json"
-
-            },
-
-            body:
-                JSON.stringify({
-
-                    inventory:
-                        data,
-
-                    master:
-                        masterData
-
-                })
-
-        }
-    )
-
-    .then(
-        response =>
-            response.json()
-    )
-
-    .then(
-        result => {
-
-            if(result.error){
-
-                alert(
-                    "저장 실패\n\n" +
-                    result.error
-                );
-
-                return null;
-
-            }
-
-
-            return result.file_id;
-
-        }
-    )
-
-    .catch(
-        error => {
-
-            console.error(
-                error
-            );
-
-
-            alert(
-                "서버 저장 중 오류가 발생했습니다."
-            );
-
-
-            return null;
-
-        }
-    );
-
 }
 
 
@@ -1464,41 +953,27 @@ function saveExcel(){
 
 function share(){
 
-    if(data.length === 0){
+    if(inventoryData.length === 0){
 
         alert(
-            "아직 조사한 데이터가 없습니다."
+            "재고조사 데이터가 없습니다."
         );
 
         return;
-
     }
 
 
-    saveExcel()
+    saveToServer()
         .then(
             fileId => {
 
-                if(!fileId){
-
-                    return;
-
-                }
-
-
                 const url =
-                    location.origin +
-                    "/share/" +
-                    fileId;
+                    location.origin
+                    + "/share/"
+                    + fileId;
 
 
-                /*
-                    PDA 공유
-                */
-
-                if(
-                    navigator.share
-                ){
+                if(navigator.share){
 
                     navigator.share({
 
@@ -1511,37 +986,31 @@ function share(){
                         url:
                             url
 
-                    }).catch(
+                    })
+                    .catch(
                         () => {}
                     );
 
 
                     return;
-
                 }
 
 
-                /*
-                    클립보드
-                */
-
-                if(
-                    navigator.clipboard
-                ){
+                if(navigator.clipboard){
 
                     navigator.clipboard
                         .writeText(url)
                         .then(
-                            function(){
+                            () => {
 
                                 alert(
-                                    "다운로드 링크가 복사되었습니다."
+                                    "공유 링크가 복사되었습니다."
                                 );
 
                             }
                         )
                         .catch(
-                            function(){
+                            () => {
 
                                 showManualCopy(
                                     url
@@ -1559,13 +1028,89 @@ function share(){
                 }
 
             }
-        );
+        )
+        .catch(
+            error => {
 
+                console.error(error);
+
+                alert(
+                    "공유 링크 생성에 실패했습니다."
+                );
+
+            }
+        );
 }
 
 
 /* =========================================================
-   수동 링크
+   서버 저장
+========================================================= */
+
+function saveToServer(){
+
+    return fetch(
+        "/save",
+        {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type":
+                    "application/json"
+
+            },
+
+            body: JSON.stringify({
+
+                inventory:
+                    inventoryData,
+
+                mapping:
+                    mappingData
+
+            })
+
+        }
+    )
+    .then(
+        response => {
+
+            if(!response.ok){
+
+                throw new Error(
+                    "서버 저장 실패"
+                );
+
+            }
+
+
+            return response.json();
+
+        }
+    )
+    .then(
+        result => {
+
+            if(result.error){
+
+                throw new Error(
+                    result.error
+                );
+
+            }
+
+
+            return result.file_id;
+
+        }
+    );
+}
+
+
+/* =========================================================
+   수동 링크 복사
 ========================================================= */
 
 function showManualCopy(url){
@@ -1576,75 +1121,80 @@ function showManualCopy(url){
         );
 
 
+    const old =
+        document.getElementById(
+            "manual-copy"
+        );
+
+
+    if(old){
+
+        old.remove();
+    }
+
+
     const div =
         document.createElement(
             "div"
         );
 
 
+    div.id =
+        "manual-copy";
+
+
+    div.className =
+        "card";
+
+
     div.innerHTML = `
 
-        <div class="card">
+        <p>
+            <b>
+                공유 링크
+            </b>
+        </p>
 
-            <p>
-                <b>
-                    다운로드 링크
-                </b>
-            </p>
+        <p>
+            아래 링크를 복사하세요.
+        </p>
 
-
-            <p>
-                아래 링크를 복사하세요.
-            </p>
-
-
-            <input
-                value="${escapeHtml(url)}"
-                readonly
-                onclick="this.select()"
-            >
-
-        </div>
+        <input
+            value="${escapeHtml(url)}"
+            readonly
+            onclick="this.select()"
+        >
 
     `;
 
 
     app.prepend(div);
-
 }
 
 
 /* =========================================================
-   QR 코드
+   QR 코드 생성
 ========================================================= */
 
 function createQR(){
 
-    if(data.length === 0){
+    if(inventoryData.length === 0){
 
         alert(
-            "아직 조사한 데이터가 없습니다."
+            "재고조사 데이터가 없습니다."
         );
 
         return;
-
     }
 
 
-    saveExcel()
+    saveToServer()
         .then(
             fileId => {
 
-                if(!fileId){
-
-                    return;
-
-                }
-
-
                 const qrUrl =
-                    "/qr/" +
-                    fileId;
+                    "/qr/"
+                    + fileId;
 
 
                 const old =
@@ -1656,7 +1206,6 @@ function createQR(){
                 if(old){
 
                     old.remove();
-
                 }
 
 
@@ -1675,46 +1224,32 @@ function createQR(){
                     <div class="card">
 
                         <h3
-                            style="
-                                text-align:center;
-                            "
+                            style="text-align:center;"
                         >
-
                             QR코드
-
                         </h3>
 
 
                         <img
                             src="${qrUrl}"
-                            style="
-                                width:250px;
-                                max-width:100%;
-                                display:block;
-                                margin:auto;
-                            "
                         >
 
 
                         <p
-                            style="
-                                text-align:center;
-                            "
+                            style="text-align:center;"
                         >
-
                             QR 스캔 시
                             엑셀 다운로드
-
                         </p>
 
 
                         <button
-                            class="danger-button"
                             onclick="closeQR()"
+                            style="
+                                background:#f44336;
+                            "
                         >
-
                             닫기
-
                         </button>
 
                     </div>
@@ -1726,11 +1261,23 @@ function createQR(){
                     .getElementById(
                         "app"
                     )
-                    .appendChild(div);
+                    .appendChild(
+                        div
+                    );
+
+            }
+        )
+        .catch(
+            error => {
+
+                console.error(error);
+
+                alert(
+                    "QR 생성 실패"
+                );
 
             }
         );
-
 }
 
 
@@ -1749,35 +1296,66 @@ function closeQR(){
     if(qrBox){
 
         qrBox.remove();
-
     }
-
 }
 
 
 /* =========================================================
-   신규 재고
+   입력창 포커스
 ========================================================= */
 
-function addNewItem(){
+function focusInput(id){
 
-    alert(
-        "현재 버전에서는 신규 재고도\n" +
-        "랙 → 제품 바코드 스캔 방식으로 등록합니다."
+    setTimeout(
+        () => {
+
+            const input =
+                document.getElementById(
+                    id
+                );
+
+
+            if(input){
+
+                input.focus();
+
+                input.select();
+
+            }
+
+        },
+        100
     );
-
 }
 
 
 /* =========================================================
-   페이지 종료 전 저장
+   HTML 안전 처리
 ========================================================= */
 
-window.addEventListener(
-    "beforeunload",
-    function(){
+function escapeHtml(value){
 
-        saveLocal();
-
-    }
-);
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+}
