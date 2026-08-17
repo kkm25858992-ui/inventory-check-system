@@ -31,11 +31,10 @@ admins = {
     "김경민": "ourbox123",
 }
 
-
 users = {
     "김경민": "ourbox",
     "8층": "1234",
-    "7층": "5678"
+    "7층": "5678",
 }
 
 
@@ -50,18 +49,7 @@ os.makedirs(
     exist_ok=True
 )
 
-
 FILE_EXPIRE_TIME = 60 * 60
-
-
-# =========================================================
-# 임시 매칭 데이터
-#
-# 업로드한 엑셀의 시트2 데이터를
-# 세션별로 보관하기 위한 구조
-# =========================================================
-
-mapping_storage = {}
 
 
 # =========================================================
@@ -85,15 +73,12 @@ def delete_old_files():
         try:
 
             if (
-                now -
-                os.path.getmtime(file_path)
-                >
-                FILE_EXPIRE_TIME
+                now
+                - os.path.getmtime(file_path)
+                > FILE_EXPIRE_TIME
             ):
 
-                os.remove(
-                    file_path
-                )
+                os.remove(file_path)
 
         except Exception:
 
@@ -101,27 +86,29 @@ def delete_old_files():
 
 
 # =========================================================
-# 숫자 변환
+# 숫자 정리
 # =========================================================
 
 def clean_number(value):
 
-    if (
-        value is None
-        or pd.isna(value)
-        or value == ""
-    ):
-
+    if value is None:
         return 0
 
     try:
 
-        value = str(value).replace(
-            ",",
-            ""
-        ).strip()
+        text = str(value)
 
-        return float(value)
+        text = text.replace(",", "").strip()
+
+        if text == "":
+            return 0
+
+        number = float(text)
+
+        if number.is_integer():
+            return int(number)
+
+        return number
 
     except Exception:
 
@@ -129,39 +116,18 @@ def clean_number(value):
 
 
 # =========================================================
-# 문자열 변환
+# 문자열 정리
 # =========================================================
 
-def clean_string(value):
+def clean_text(value):
 
-    if (
-        value is None
-        or pd.isna(value)
-    ):
-
+    if value is None:
         return ""
 
-    value = str(value).strip()
+    if pd.isna(value):
+        return ""
 
-    # Excel에서 바코드가 숫자로 읽혀
-    # 123456789.0 형태가 되는 경우
-    if value.endswith(".0"):
-
-        try:
-
-            number = float(value)
-
-            if number.is_integer():
-
-                value = str(
-                    int(number)
-                )
-
-        except Exception:
-
-            pass
-
-    return value
+    return str(value).strip()
 
 
 # =========================================================
@@ -180,23 +146,14 @@ def login_page():
 # 로그인
 # =========================================================
 
-@app.route(
-    "/login",
-    methods=["POST"]
-)
+@app.route("/login", methods=["POST"])
 def login():
 
-    user_id = request.form.get(
-        "id"
-    )
+    user_id = request.form.get("id", "").strip()
 
-    pw = request.form.get(
-        "pw"
-    )
+    pw = request.form.get("pw", "").strip()
 
-    role = request.form.get(
-        "role"
-    )
+    role = request.form.get("role", "").strip()
 
 
     # 관리자
@@ -204,35 +161,29 @@ def login():
 
         if (
             user_id in admins
-            and
-            admins[user_id] == pw
+            and admins[user_id] == pw
         ):
 
             session["login"] = True
 
             session["role"] = "admin"
 
-            return redirect(
-                "/admin"
-            )
+            return redirect("/admin")
 
 
     # 사용자
-    elif role == "user":
+    if role == "user":
 
         if (
             user_id in users
-            and
-            users[user_id] == pw
+            and users[user_id] == pw
         ):
 
             session["login"] = True
 
             session["role"] = "user"
 
-            return redirect(
-                "/"
-            )
+            return redirect("/")
 
 
     return "로그인 실패"
@@ -245,30 +196,17 @@ def login():
 @app.route("/")
 def index():
 
-    if not session.get(
-        "login"
-    ):
+    if not session.get("login"):
+        return redirect("/login")
 
-        return redirect(
-            "/login"
-        )
-
-
-    if (
-        session.get("role")
-        !=
-        "user"
-    ):
-
-        return redirect(
-            "/login"
-        )
+    if session.get("role") != "user":
+        return redirect("/login")
 
 
     return render_template(
         "index.html",
         data=[],
-        mapping=[]
+        lookup=[]
     )
 
 
@@ -279,37 +217,19 @@ def index():
 @app.route("/admin")
 def admin():
 
-    if not session.get(
-        "login"
-    ):
+    if not session.get("login"):
+        return redirect("/login")
 
-        return redirect(
-            "/login"
-        )
-
-
-    if (
-        session.get("role")
-        !=
-        "admin"
-    ):
-
-        return redirect(
-            "/login"
-        )
+    if session.get("role") != "admin":
+        return redirect("/login")
 
 
     files = []
 
 
-    for filename in os.listdir(
-        UPLOAD_FOLDER
-    ):
+    for filename in os.listdir(UPLOAD_FOLDER):
 
-        if not filename.endswith(
-            ".xlsx"
-        ):
-
+        if not filename.endswith(".xlsx"):
             continue
 
 
@@ -321,27 +241,24 @@ def admin():
 
         files.append({
 
-            "id":
-                filename.replace(
-                    ".xlsx",
-                    ""
-                ),
+            "id": filename.replace(
+                ".xlsx",
+                ""
+            ),
 
-            "time":
-                time.strftime(
-                    "%Y-%m-%d %H:%M:%S",
-                    time.localtime(
-                        os.path.getmtime(
-                            file_path
-                        )
+            "time": time.strftime(
+                "%Y-%m-%d %H:%M:%S",
+                time.localtime(
+                    os.path.getmtime(
+                        file_path
                     )
                 )
+            )
 
         })
 
 
-    files = sorted(
-        files,
+    files.sort(
         key=lambda x: x["time"],
         reverse=True
     )
@@ -356,24 +273,15 @@ def admin():
 # =========================================================
 # 엑셀 업로드
 #
-# 업로드 엑셀 구조
+# 업로드 엑셀의 시트2:
 #
-# 시트1
-# → 기존 데이터가 있더라도 실제 조사에서는 사용하지 않음
-#
-# 시트2
-# A열 화주사
-# B열 바코드
-# C열 입수량
-# D열 상품명
-#
-# 시트2를 매칭 데이터로 사용
+# A = 화주사
+# B = 바코드
+# C = 입수량
+# D = 상품명
 # =========================================================
 
-@app.route(
-    "/upload",
-    methods=["POST"]
-)
+@app.route("/upload", methods=["POST"])
 def upload():
 
     try:
@@ -381,17 +289,15 @@ def upload():
         if "file" not in request.files:
 
             return (
-                "업로드 파일이 없습니다.",
+                "엑셀 파일이 없습니다.",
                 400
             )
 
 
-        file = request.files[
-            "file"
-        ]
+        file = request.files["file"]
 
 
-        if not file.filename:
+        if file.filename == "":
 
             return (
                 "파일을 선택해주세요.",
@@ -400,244 +306,172 @@ def upload():
 
 
         filename = secure_filename(
-            file.filename.lower()
+            file.filename
         )
 
 
         # =================================================
-        # CSV 처리
+        # 파일 읽기
         # =================================================
 
-        if filename.endswith(
-            ".csv"
-        ):
+        if filename.lower().endswith(".csv"):
 
-            df = pd.read_csv(
-                file
-            )
-
-
-            # CSV는 기존 구조 호환
-            required_cols = [
-                "로케이션",
-                "상품명",
-                "재고수량"
-            ]
-
-
-            for col in required_cols:
-
-                if col not in df.columns:
-
-                    return (
-                        f"{col} 없음",
-                        400
-                    )
-
-
-            return render_template(
-                "index.html",
-                data=df.to_dict(
-                    orient="records"
-                ),
-                mapping=[]
-            )
-
-
-        # =================================================
-        # Excel
-        # =================================================
-
-        excel = pd.ExcelFile(
-            file,
-            engine="openpyxl"
-        )
-
-
-        sheet_names = (
-            excel.sheet_names
-        )
-
-
-        # =================================================
-        # 시트1
-        # =================================================
-
-        if len(sheet_names) >= 1:
-
-            source_sheet1 = pd.read_excel(
-                excel,
-                sheet_name=sheet_names[0]
+            df_lookup = pd.read_csv(
+                file,
+                dtype=str
             )
 
         else:
 
-            source_sheet1 = pd.DataFrame()
-
-
-        # =================================================
-        # 시트2
-        # =================================================
-
-        if len(sheet_names) >= 2:
-
-            source_sheet2 = pd.read_excel(
-                excel,
-                sheet_name=sheet_names[1]
+            excel = pd.ExcelFile(
+                file,
+                engine="openpyxl"
             )
 
-        else:
 
-            source_sheet2 = pd.DataFrame()
+            if "시트2" in excel.sheet_names:
 
+                sheet_name = "시트2"
 
-        # =================================================
-        # 시트2 컬럼 처리
-        #
-        # 원하는 구조
-        #
-        # A = 화주사
-        # B = 바코드
-        # C = 입수량
-        # D = 상품명
-        #
-        # 헤더가 정확하지 않은 경우에도
-        # 위치 기준으로 읽을 수 있도록 처리
-        # =================================================
+            elif len(excel.sheet_names) >= 2:
 
-        mapping_df = pd.DataFrame()
+                sheet_name = excel.sheet_names[1]
 
-
-        if not source_sheet2.empty:
-
-            mapping_df = source_sheet2.copy()
-
-
-            # 컬럼명이 정확한 경우
-            if all(
-                col in mapping_df.columns
-                for col in [
-                    "화주사",
-                    "바코드",
-                    "입수량",
-                    "상품명"
-                ]
-            ):
-
-                mapping_df = mapping_df[
-                    [
-                        "화주사",
-                        "바코드",
-                        "입수량",
-                        "상품명"
-                    ]
-                ].copy()
-
-
-            # 컬럼명이 없는 경우
             else:
 
-                if len(
-                    mapping_df.columns
-                ) >= 4:
+                return (
+                    "시트2가 없습니다.",
+                    400
+                )
 
-                    mapping_df = mapping_df.iloc[
-                        :,
-                        :4
-                    ].copy()
 
-                    mapping_df.columns = [
-                        "화주사",
-                        "바코드",
-                        "입수량",
-                        "상품명"
-                    ]
+            df_lookup = pd.read_excel(
+                excel,
+                sheet_name=sheet_name,
+                dtype=str
+            )
 
-                else:
 
-                    mapping_df = pd.DataFrame(
-                        columns=[
-                            "화주사",
-                            "바코드",
-                            "입수량",
-                            "상품명"
-                        ]
-                    )
+        # =================================================
+        # 컬럼명 정리
+        # =================================================
+
+        df_lookup.columns = [
+            str(col).strip()
+            for col in df_lookup.columns
+        ]
+
+
+        required_cols = [
+            "화주사",
+            "바코드",
+            "입수량",
+            "상품명"
+        ]
+
+
+        missing = [
+
+            col
+
+            for col in required_cols
+
+            if col not in df_lookup.columns
+
+        ]
+
+
+        if missing:
+
+            return (
+                "시트2에 다음 컬럼이 없습니다: "
+                + ", ".join(missing),
+                400
+            )
 
 
         # =================================================
         # 시트2 데이터 정리
         # =================================================
 
-        if not mapping_df.empty:
-
-            mapping_df["화주사"] = (
-                mapping_df["화주사"]
-                .apply(clean_string)
-            )
+        df_lookup = df_lookup[
+            required_cols
+        ].copy()
 
 
-            mapping_df["바코드"] = (
-                mapping_df["바코드"]
-                .apply(clean_string)
-            )
+        df_lookup["화주사"] = (
+            df_lookup["화주사"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
 
 
-            mapping_df["입수량"] = (
-                mapping_df["입수량"]
-                .apply(clean_number)
-            )
+        df_lookup["바코드"] = (
+            df_lookup["바코드"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
 
 
-            mapping_df["상품명"] = (
-                mapping_df["상품명"]
-                .apply(clean_string)
-            )
+        df_lookup["상품명"] = (
+            df_lookup["상품명"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
 
 
-        # =================================================
-        # 매칭 데이터 JSON
-        # =================================================
-
-        mapping_data = (
-            mapping_df.to_dict(
-                orient="records"
-            )
+        df_lookup["입수량"] = (
+            df_lookup["입수량"]
+            .fillna("")
+            .astype(str)
+            .str.replace(",", "", regex=False)
+            .str.strip()
         )
 
 
         # =================================================
-        # 세션에 매칭 데이터 저장
+        # 빈 바코드 제거
         # =================================================
 
-        session_id = str(
-            uuid.uuid4()
+        df_lookup = df_lookup[
+            df_lookup["바코드"] != ""
+        ]
+
+
+        # =================================================
+        # 중복 바코드가 있으면 첫 번째 사용
+        # =================================================
+
+        df_lookup = df_lookup.drop_duplicates(
+            subset=["바코드"],
+            keep="first"
         )
 
 
-        mapping_storage[
-            session_id
-        ] = mapping_data
-
-
-        session[
-            "mapping_id"
-        ] = session_id
+        lookup = (
+            df_lookup
+            .to_dict(orient="records")
+        )
 
 
         # =================================================
-        # 기존 시트1 데이터는 사용하지 않음
+        # 업로드 완료
         #
-        # 재고조사 시작 시 빈 배열로 시작
+        # data는 비워둡니다.
+        # 시트1은 조사하면서 직접 입력한 데이터만 생성
         # =================================================
-
-        inventory_data = []
-
 
         return render_template(
+
             "index.html",
-            data=inventory_data,
-            mapping=mapping_data
+
+            data=[],
+
+            lookup=lookup
+
         )
 
 
@@ -650,28 +484,28 @@ def upload():
 
 
         return (
-            f"엑셀 업로드 오류: {str(e)}",
+            "엑셀 업로드 오류: "
+            + str(e),
             500
         )
 
 
 # =========================================================
-# 저장
+# 조사 결과 저장
 #
-# JS에서
+# 시트1:
+# A 바코드
+# B 랙
+# C 소비기한
+# D 수량
+# E 상품명
+# F 화주사
 #
-# {
-#     inventory: data,
-#     mapping: mappingData
-# }
-#
-# 형태로 전달
+# 시트2:
+# 업로드 당시의 매칭 데이터 그대로 유지
 # =========================================================
 
-@app.route(
-    "/save",
-    methods=["POST"]
-)
+@app.route("/save", methods=["POST"])
 def save():
 
     delete_old_files()
@@ -679,262 +513,98 @@ def save():
 
     try:
 
-        request_data = (
-            request.get_json(
-                silent=True
-            )
+        body = request.get_json(
+            silent=True
         )
 
 
-        if not request_data:
+        if not body:
 
             return jsonify({
 
                 "error":
-                    "저장 데이터가 없습니다."
+                "저장할 데이터가 없습니다."
+
+            }), 400
+
+
+        inventory = body.get(
+            "inventory",
+            []
+        )
+
+
+        lookup = body.get(
+            "lookup",
+            []
+        )
+
+
+        if not inventory:
+
+            return jsonify({
+
+                "error":
+                "재고조사 데이터가 없습니다."
 
             }), 400
 
 
         # =================================================
-        # 재고조사 데이터
+        # 시트1 컬럼 생성
         # =================================================
 
-        inventory_data = (
-            request_data.get(
-                "inventory",
-                []
+        output_rows = []
+
+
+        for item in inventory:
+
+            barcode = clean_text(
+                item.get("바코드", "")
             )
-        )
 
-
-        # =================================================
-        # 매칭 데이터
-        # =================================================
-
-        mapping_data = (
-            request_data.get(
-                "mapping",
-                []
+            rack = clean_text(
+                item.get("랙", "")
             )
-        )
 
+            expiry = clean_text(
+                item.get("소비기한", "")
+            )
 
-        if not isinstance(
-            inventory_data,
-            list
-        ):
+            qty = clean_number(
+                item.get("수량", 0)
+            )
 
-            return jsonify({
+            product_name = clean_text(
+                item.get("상품명", "")
+            )
 
-                "error":
-                    "inventory 형식 오류"
-
-            }), 400
-
-
-        if not isinstance(
-            mapping_data,
-            list
-        ):
-
-            mapping_data = []
-
-
-        if len(
-            inventory_data
-        ) == 0:
-
-            return jsonify({
-
-                "error":
-                    "재고조사 데이터가 없습니다."
-
-            }), 400
-
-
-        # =================================================
-        # DataFrame 생성
-        # =================================================
-
-        df_inventory = pd.DataFrame(
-            inventory_data
-        )
-
-
-        df_mapping = pd.DataFrame(
-            mapping_data
-        )
-
-
-        # =================================================
-        # 필요한 컬럼 보장
-        # =================================================
-
-        required_inventory_columns = [
-            "바코드",
-            "랙",
-            "소비기한",
-            "수량",
-            "상품명",
-            "화주사"
-        ]
-
-
-        for col in required_inventory_columns:
-
-            if col not in df_inventory.columns:
-
-                df_inventory[col] = ""
-
-
-        # =================================================
-        # 데이터 정리
-        # =================================================
-
-        df_inventory["바코드"] = (
-            df_inventory["바코드"]
-            .apply(clean_string)
-        )
-
-
-        df_inventory["랙"] = (
-            df_inventory["랙"]
-            .apply(clean_string)
-        )
-
-
-        df_inventory["소비기한"] = (
-            df_inventory["소비기한"]
-            .apply(clean_string)
-        )
-
-
-        df_inventory["수량"] = (
-            df_inventory["수량"]
-            .apply(clean_number)
-        )
-
-
-        df_inventory["상품명"] = (
-            df_inventory["상품명"]
-            .apply(clean_string)
-        )
-
-
-        df_inventory["화주사"] = (
-            df_inventory["화주사"]
-            .apply(clean_string)
-        )
-
-
-        # =================================================
-        # 매칭 데이터가 있으면 다시 한번 매칭
-        #
-        # 제품 바코드
-        # →
-        # 화주사
-        # 입수량
-        # 상품명
-        # =================================================
-
-        mapping_dict = {}
-
-
-        if not df_mapping.empty:
-
-            for col in [
-                "화주사",
-                "바코드",
-                "입수량",
-                "상품명"
-            ]:
-
-                if col not in df_mapping.columns:
-
-                    df_mapping[col] = ""
-
-
-            for _, row in df_mapping.iterrows():
-
-                barcode = clean_string(
-                    row["바코드"]
-                )
-
-
-                if not barcode:
-                    continue
-
-
-                mapping_dict[
-                    barcode
-                ] = {
-
-                    "화주사":
-                        clean_string(
-                            row["화주사"]
-                        ),
-
-                    "입수량":
-                        clean_number(
-                            row["입수량"]
-                        ),
-
-                    "상품명":
-                        clean_string(
-                            row["상품명"]
-                        )
-
-                }
-
-
-        # =================================================
-        # 최종 상품명 / 화주사 자동 매칭
-        # =================================================
-
-        for index, row in df_inventory.iterrows():
-
-            barcode = clean_string(
-                row["바코드"]
+            owner = clean_text(
+                item.get("화주사", "")
             )
 
 
-            if barcode in mapping_dict:
+            output_rows.append({
 
-                matched = mapping_dict[
-                    barcode
-                ]
+                "바코드": barcode,
 
+                "랙": rack,
 
-                df_inventory.at[
-                    index,
-                    "상품명"
-                ] = matched[
-                    "상품명"
-                ]
+                "소비기한": expiry,
 
+                "수량": qty,
 
-                df_inventory.at[
-                    index,
-                    "화주사"
-                ] = matched[
-                    "화주사"
-                ]
+                "상품명": product_name,
+
+                "화주사": owner
+
+            })
 
 
-        # =================================================
-        # 시트1 컬럼 순서
-        #
-        # A 바코드
-        # B 랙
-        # C 소비기한
-        # D 수량
-        # E 상품명
-        # F 화주사
-        # =================================================
+        df_sheet1 = pd.DataFrame(
+            output_rows,
 
-        sheet1 = df_inventory[
-            [
+            columns=[
                 "바코드",
                 "랙",
                 "소비기한",
@@ -942,7 +612,36 @@ def save():
                 "상품명",
                 "화주사"
             ]
-        ].copy()
+        )
+
+
+        # =================================================
+        # 시트2
+        # =================================================
+
+        if lookup:
+
+            df_sheet2 = pd.DataFrame(
+                lookup,
+
+                columns=[
+                    "화주사",
+                    "바코드",
+                    "입수량",
+                    "상품명"
+                ]
+            )
+
+        else:
+
+            df_sheet2 = pd.DataFrame(
+                columns=[
+                    "화주사",
+                    "바코드",
+                    "입수량",
+                    "상품명"
+                ]
+            )
 
 
         # =================================================
@@ -955,8 +654,11 @@ def save():
 
 
         path = os.path.join(
+
             UPLOAD_FOLDER,
+
             f"{file_id}.xlsx"
+
         )
 
 
@@ -965,68 +667,41 @@ def save():
         # =================================================
 
         with pd.ExcelWriter(
+
             path,
+
             engine="openpyxl"
+
         ) as writer:
 
-            # -------------------------------
+
             # 시트1
-            # -------------------------------
+            df_sheet1.to_excel(
 
-            sheet1.to_excel(
                 writer,
+
                 index=False,
+
                 sheet_name="시트1"
+
             )
 
 
-            # -------------------------------
             # 시트2
-            #
-            # 원본 매칭 데이터 그대로 유지
-            # -------------------------------
+            df_sheet2.to_excel(
 
-            if not df_mapping.empty:
-
-                sheet2 = df_mapping[
-                    [
-                        "화주사",
-                        "바코드",
-                        "입수량",
-                        "상품명"
-                    ]
-                ].copy()
-
-            else:
-
-                sheet2 = pd.DataFrame(
-                    columns=[
-                        "화주사",
-                        "바코드",
-                        "입수량",
-                        "상품명"
-                    ]
-                )
-
-
-            sheet2.to_excel(
                 writer,
+
                 index=False,
+
                 sheet_name="시트2"
+
             )
 
-
-        # =================================================
-        # 결과
-        # =================================================
 
         return jsonify({
 
-            "file_id":
-                file_id,
-
-            "count":
-                len(sheet1)
+            "file_id": file_id
 
         })
 
@@ -1041,43 +716,37 @@ def save():
 
         return jsonify({
 
-            "error":
-                str(e)
+            "error": str(e)
 
         }), 500
 
 
 # =========================================================
-# 다운로드
+# 엑셀 다운로드
 # =========================================================
 
-@app.route(
-    "/download/<file_id>"
-)
+@app.route("/download/<file_id>")
 def download(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
-    if not os.path.exists(
-        path
-    ):
+    if not os.path.exists(path):
 
-        return (
-            "파일 없음",
-            404
-        )
+        return "파일 없음", 404
 
 
     return send_file(
 
         path,
 
-        download_name=
-            "inventory.xlsx",
+        download_name="재고조사.xlsx",
 
         as_attachment=True
 
@@ -1088,33 +757,28 @@ def download(file_id):
 # 공유 다운로드
 # =========================================================
 
-@app.route(
-    "/share/<file_id>"
-)
+@app.route("/share/<file_id>")
 def share_download(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
-    if not os.path.exists(
-        path
-    ):
+    if not os.path.exists(path):
 
-        return (
-            "파일 없음",
-            404
-        )
+        return "파일 없음", 404
 
 
     return send_file(
 
         path,
 
-        download_name=
-            "inventory.xlsx",
+        download_name="재고조사.xlsx",
 
         as_attachment=True
 
@@ -1125,39 +789,35 @@ def share_download(file_id):
 # QR 생성
 # =========================================================
 
-@app.route(
-    "/qr/<file_id>"
-)
+@app.route("/qr/<file_id>")
 def generate_qr(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
-    if not os.path.exists(
-        path
-    ):
+    if not os.path.exists(path):
 
-        return (
-            "파일 없음",
-            404
-        )
+        return "파일 없음", 404
 
 
     url = (
+
         request.host_url.rstrip("/")
-        +
-        "/share/"
-        +
-        file_id
+
+        + "/share/"
+
+        + file_id
+
     )
 
 
-    qr = qrcode.make(
-        url
-    )
+    qr = qrcode.make(url)
 
 
     img_io = BytesIO()
@@ -1165,7 +825,7 @@ def generate_qr(file_id):
 
     qr.save(
         img_io,
-        "PNG"
+        format="PNG"
     )
 
 
@@ -1176,8 +836,7 @@ def generate_qr(file_id):
 
         img_io,
 
-        mimetype=
-            "image/png"
+        mimetype="image/png"
 
     )
 
@@ -1193,18 +852,17 @@ def generate_qr(file_id):
 def delete_file(file_id):
 
     path = os.path.join(
+
         UPLOAD_FOLDER,
+
         f"{file_id}.xlsx"
+
     )
 
 
-    if os.path.exists(
-        path
-    ):
+    if os.path.exists(path):
 
-        os.remove(
-            path
-        )
+        os.remove(path)
 
         return "삭제 완료"
 
