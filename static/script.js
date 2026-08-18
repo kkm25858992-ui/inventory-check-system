@@ -279,26 +279,53 @@ function init(){
 
 
     /*
-     * 상품 마스터가 없으면
-     * 업로드 안내 화면 유지
+     * =====================================================
+     * 상품마스터가 정상적으로 들어온 경우
+     * 엑셀 업로드 화면 숨김
+     * =====================================================
      */
 
-    if(data.length === 0){
+    const uploadBox =
+        document.getElementById(
+            "uploadBox"
+        );
 
-        showUploadMessage();
+
+    if(data.length > 0){
+
+        if(uploadBox){
+
+            uploadBox.style.display =
+                "none";
+        }
+
+
+        /*
+         * 기존 조사 화면 시작
+         */
+
+        showRackScreen();
 
         return;
     }
 
 
     /*
-     * 기존 조사 데이터가 있으면
-     * 이어서 조사할 수 있도록 랙 화면
+     * =====================================================
+     * 상품마스터가 없는 경우
+     * 업로드 화면 표시
+     * =====================================================
      */
 
-    showRackScreen();
-}
+    if(uploadBox){
 
+        uploadBox.style.display =
+            "block";
+    }
+
+
+    showUploadMessage();
+}
 
 /* =========================================================
    업로드 안내
