@@ -9,6 +9,7 @@ from io import BytesIO
 
 
 app = Flask(__name__)
+
 app.secret_key = "secret_key_123"
 
 
@@ -19,6 +20,7 @@ app.secret_key = "secret_key_123"
 admins = {
     "김경민": "ourbox123",
 }
+
 
 users = {
     "김경민": "ourbox",
@@ -37,6 +39,7 @@ os.makedirs(
     UPLOAD_FOLDER,
     exist_ok=True
 )
+
 
 FILE_EXPIRE_TIME = 60 * 60
 
@@ -58,12 +61,17 @@ def delete_old_files():
 
         if os.path.isfile(file_path):
 
-            if now - os.path.getmtime(file_path) > FILE_EXPIRE_TIME:
+            if (
+                now - os.path.getmtime(file_path)
+                > FILE_EXPIRE_TIME
+            ):
 
                 try:
+
                     os.remove(file_path)
 
                 except Exception:
+
                     pass
 
 
@@ -171,17 +179,21 @@ def admin():
 
             files.append({
 
-                "id": filename.replace(
-                    ".xlsx",
-                    ""
-                ),
+                "id":
+                    filename.replace(
+                        ".xlsx",
+                        ""
+                    ),
 
-                "time": time.strftime(
-                    '%Y-%m-%d %H:%M:%S',
-                    time.localtime(
-                        os.path.getmtime(file_path)
+                "time":
+                    time.strftime(
+                        '%Y-%m-%d %H:%M:%S',
+                        time.localtime(
+                            os.path.getmtime(
+                                file_path
+                            )
+                        )
                     )
-                )
 
             })
 
@@ -239,12 +251,13 @@ def upload():
 
 
         # =================================================
-        # 확장자 확인
+        # 확장자
         # =================================================
 
         _, extension = os.path.splitext(
             original_filename
         )
+
 
         extension = extension.lower()
 
@@ -254,9 +267,11 @@ def upload():
         # =================================================
 
         allowed_extensions = {
+
             ".xlsx",
             ".xlsm",
             ".csv"
+
         }
 
 
@@ -265,14 +280,18 @@ def upload():
             return (
                 "지원하지 않는 파일 형식입니다.\n\n"
                 "현재 파일 확장자: "
-                + (extension if extension else "없음")
+                + (
+                    extension
+                    if extension
+                    else "없음"
+                )
                 + "\n\n"
                 "xlsx, xlsm, csv 파일만 업로드할 수 있습니다."
             )
 
 
         # =================================================
-        # 파일 전체를 메모리에 읽기
+        # 파일 전체 메모리 저장
         # =================================================
 
         file_bytes = file.read()
@@ -334,12 +353,18 @@ def upload():
                 )
 
 
+            # =================================================
+            # 시트 확인
+            # =================================================
+
             if len(excel.sheet_names) == 0:
 
                 return "엑셀 파일에 시트가 없습니다."
 
 
             # =================================================
+            # 기존 기능 유지
+            #
             # 시트2가 있으면 시트2
             # 없으면 시트1
             # =================================================
@@ -352,6 +377,10 @@ def upload():
 
                 target_sheet = excel.sheet_names[0]
 
+
+            # =================================================
+            # 선택된 시트 읽기
+            # =================================================
 
             try:
 
@@ -442,8 +471,11 @@ def upload():
         mapping_df["화주사"] = (
 
             mapping_df["화주사"]
+
             .fillna("")
+
             .astype(str)
+
             .str.strip()
 
         )
@@ -456,8 +488,11 @@ def upload():
         mapping_df["바코드"] = (
 
             mapping_df["바코드"]
+
             .fillna("")
+
             .astype(str)
+
             .str.strip()
 
         )
@@ -470,8 +505,11 @@ def upload():
         mapping_df["상품명"] = (
 
             mapping_df["상품명"]
+
             .fillna("")
+
             .astype(str)
+
             .str.strip()
 
         )
@@ -484,13 +522,17 @@ def upload():
         mapping_df["입수량"] = (
 
             mapping_df["입수량"]
+
             .fillna(0)
+
             .astype(str)
+
             .str.replace(
                 ",",
                 "",
                 regex=False
             )
+
             .str.strip()
 
         )
@@ -517,7 +559,7 @@ def upload():
 
 
         # =================================================
-        # 필요한 컬럼만 사용
+        # 필요한 컬럼
         # =================================================
 
         mapping_df = mapping_df[
@@ -607,21 +649,14 @@ def upload():
 # E = 상품명
 # F = 화주사
 #
-# 신규 재고의 경우
-#
-# A = 빈칸
-# B = 입력 랙
-# C = 입력 소비기한
-# D = 입력 수량
-# E = 입력 상품명
-# F = 빈칸
-#
-#
 # 시트2
 # A = 화주사
 # B = 바코드
 # C = 입수량
 # D = 상품명
+#
+# 신규 재고도 시트1에 저장
+# 신규 재고의 바코드는 빈칸
 # =========================================================
 
 @app.route('/save', methods=['POST'])
@@ -654,6 +689,10 @@ def save():
         )
 
 
+        # =================================================
+        # 신규 재고만 등록한 경우도 허용
+        # =================================================
+
         if not inventory_data:
 
             return jsonify({
@@ -662,7 +701,7 @@ def save():
 
 
         # =================================================
-        # 시트1 데이터
+        # 시트1
         # =================================================
 
         df_inventory = pd.DataFrame(
@@ -697,27 +736,73 @@ def save():
         # 문자열 처리
         # =================================================
 
-        for col in [
+        df_inventory["바코드"] = (
 
-            "바코드",
-            "랙",
-            "소비기한",
-            "상품명",
-            "화주사"
+            df_inventory["바코드"]
 
-        ]:
+            .fillna("")
 
-            df_inventory[col] = (
+            .astype(str)
 
-                df_inventory[col]
-                .fillna("")
-                .astype(str)
+            .str.strip()
 
-            )
+        )
+
+
+        df_inventory["랙"] = (
+
+            df_inventory["랙"]
+
+            .fillna("")
+
+            .astype(str)
+
+            .str.strip()
+
+        )
+
+
+        df_inventory["소비기한"] = (
+
+            df_inventory["소비기한"]
+
+            .fillna("")
+
+            .astype(str)
+
+            .str.strip()
+
+        )
+
+
+        df_inventory["상품명"] = (
+
+            df_inventory["상품명"]
+
+            .fillna("")
+
+            .astype(str)
+
+            .str.strip()
+
+        )
+
+
+        df_inventory["화주사"] = (
+
+            df_inventory["화주사"]
+
+            .fillna("")
+
+            .astype(str)
+
+            .str.strip()
+
+        )
 
 
         # =================================================
-        # 수량 숫자 처리
+        # 수량
         # =================================================
 
         df_inventory["수량"] = pd.to_numeric(
@@ -731,9 +816,6 @@ def save():
 
         # =================================================
         # 상품마스터 매칭
-        #
-        # 신규 재고는 바코드가 비어 있으므로
-        # 매칭 대상에서 제외됨
         # =================================================
 
         if mapping_data:
@@ -768,8 +850,11 @@ def save():
             df_mapping["바코드"] = (
 
                 df_mapping["바코드"]
+
                 .fillna("")
+
                 .astype(str)
+
                 .str.strip()
 
             )
@@ -778,8 +863,11 @@ def save():
             df_mapping["상품명"] = (
 
                 df_mapping["상품명"]
+
                 .fillna("")
+
                 .astype(str)
+
                 .str.strip()
 
             )
@@ -788,24 +876,19 @@ def save():
             df_mapping["화주사"] = (
 
                 df_mapping["화주사"]
+
                 .fillna("")
+
                 .astype(str)
+
                 .str.strip()
 
             )
 
 
             # =================================================
-            # 바코드가 있는 상품만 매칭
-            #
-            # 신규 재고의 빈 바코드는
-            # 상품마스터와 연결되지 않음
+            # 바코드 중복 제거
             # =================================================
-
-            df_mapping = df_mapping[
-                df_mapping["바코드"] != ""
-            ]
-
 
             df_mapping = df_mapping.drop_duplicates(
 
@@ -815,6 +898,10 @@ def save():
 
             )
 
+
+            # =================================================
+            # 매칭용 데이터
+            # =================================================
 
             mapping_for_merge = df_mapping[
 
@@ -850,101 +937,117 @@ def save():
 
             # =================================================
             # 바코드 기준 매칭
+            #
+            # 신규 재고는 바코드가 빈칸이므로
+            # 일반 재고처럼 잘못 매칭되지 않도록
+            # merge 후 기존 값을 우선 유지
             # =================================================
 
-            if not mapping_for_merge.empty:
+            df_inventory = df_inventory.merge(
 
-                df_inventory = df_inventory.merge(
+                mapping_for_merge,
 
-                    mapping_for_merge,
+                on="바코드",
 
-                    on="바코드",
+                how="left"
 
-                    how="left"
-
-                )
+            )
 
 
-                # =================================================
-                # 상품명
-                # =================================================
+            # =================================================
+            # 상품명
+            # =================================================
 
-                df_inventory["상품명"] = (
+            df_inventory["상품명"] = (
 
-                    df_inventory["상품명"]
+                df_inventory["상품명"]
 
-                    .replace(
+                .replace(
 
-                        [
-                            "",
-                            "nan",
-                            "None"
-                        ],
-
-                        pd.NA
-
-                    )
-
-                    .fillna(
-                        df_inventory["매칭상품명"]
-                    )
-
-                    .fillna("")
-
-                )
-
-
-                # =================================================
-                # 화주사
-                # =================================================
-
-                df_inventory["화주사"] = (
-
-                    df_inventory["화주사"]
-
-                    .replace(
-
-                        [
-                            "",
-                            "nan",
-                            "None"
-                        ],
-
-                        pd.NA
-
-                    )
-
-                    .fillna(
-                        df_inventory["매칭화주사"]
-                    )
-
-                    .fillna("")
-
-                )
-
-
-                # =================================================
-                # 임시 컬럼 제거
-                # =================================================
-
-                df_inventory.drop(
-
-                    columns=[
-
-                        "매칭상품명",
-                        "매칭화주사"
-
+                    [
+                        "",
+                        "nan",
+                        "None"
                     ],
 
-                    inplace=True,
-
-                    errors="ignore"
+                    pd.NA
 
                 )
+
+            )
+
+
+            df_inventory["상품명"] = (
+
+                df_inventory["상품명"]
+
+                .fillna(
+                    df_inventory["매칭상품명"]
+                )
+
+                .fillna("")
+
+            )
+
+
+            # =================================================
+            # 화주사
+            # =================================================
+
+            df_inventory["화주사"] = (
+
+                df_inventory["화주사"]
+
+                .replace(
+
+                    [
+                        "",
+                        "nan",
+                        "None"
+                    ],
+
+                    pd.NA
+
+                )
+
+            )
+
+
+            df_inventory["화주사"] = (
+
+                df_inventory["화주사"]
+
+                .fillna(
+                    df_inventory["매칭화주사"]
+                )
+
+                .fillna("")
+
+            )
+
+
+            # =================================================
+            # 임시 컬럼 삭제
+            # =================================================
+
+            df_inventory.drop(
+
+                columns=[
+
+                    "매칭상품명",
+                    "매칭화주사"
+
+                ],
+
+                inplace=True,
+
+                errors="ignore"
+
+            )
 
 
         # =================================================
-        # 최종 시트1 순서
+        # 최종 시트1
         # =================================================
 
         df_inventory = df_inventory[
@@ -1040,9 +1143,9 @@ def save():
         ) as writer:
 
 
-            # =================================================
+            # -------------------------------
             # 시트1
-            # =================================================
+            # -------------------------------
 
             df_inventory.to_excel(
 
@@ -1055,9 +1158,9 @@ def save():
             )
 
 
-            # =================================================
+            # -------------------------------
             # 시트2
-            # =================================================
+            # -------------------------------
 
             df_mapping.to_excel(
 
