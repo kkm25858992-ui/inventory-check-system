@@ -7,7 +7,7 @@
 
 <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0"
+    content="width=device-width, initial-scale=1"
 >
 
 <title>ourbox 오산센터 재고조사</title>
@@ -22,17 +22,13 @@
 
 body {
 
-    font-family:
-        Arial,
-        "Malgun Gothic",
-        sans-serif;
-
-    margin: 0;
+    font-family: sans-serif;
 
     padding: 15px;
 
-    background: #f0f9f4;
+    margin: 0;
 
+    background: #f0f9f4;
 }
 
 
@@ -47,7 +43,6 @@ body {
     color: #2e7d32;
 
     margin-bottom: 15px;
-
 }
 
 
@@ -62,9 +57,7 @@ body {
     margin-top: 10px;
 
     box-shadow:
-        0 2px 8px
-        rgba(0,0,0,0.08);
-
+        0 2px 6px rgba(0,0,0,0.08);
 }
 
 
@@ -72,7 +65,7 @@ input {
 
     width: 100%;
 
-    padding: 15px;
+    padding: 16px;
 
     font-size: 20px;
 
@@ -81,16 +74,6 @@ input {
     border: 1px solid #ccc;
 
     border-radius: 8px;
-
-}
-
-
-input:focus {
-
-    outline: 3px solid #a5d6a7;
-
-    border-color: #4caf50;
-
 }
 
 
@@ -98,7 +81,7 @@ button {
 
     width: 100%;
 
-    padding: 15px;
+    padding: 16px;
 
     font-size: 18px;
 
@@ -111,164 +94,108 @@ button {
     border: none;
 
     border-radius: 8px;
-
-    font-weight: bold;
-
 }
 
 
 button:active {
 
-    transform: scale(0.98);
-
+    opacity: 0.7;
 }
 
 
-.green-button {
+.product-check-btn,
+.download-btn,
+.share-btn {
 
     background: #66bb6a;
 
+    color: white;
 }
 
 
-.red-button {
+.rack-btn {
 
-    background: #ef5350;
-
+    background: #66bb6a;
 }
 
 
-.gray-button {
+.barcode-btn {
 
-    background: #78909c;
-
+    background: #66bb6a;
 }
 
 
-.scan-label {
+.save-qty-btn {
 
-    display: block;
-
-    margin-top: 15px;
-
-    font-size: 15px;
-
-    font-weight: bold;
-
-    color: #555;
-
+    background: #66bb6a;
 }
 
 
-.info-box {
+.qr-btn {
 
-    background: #f5f5f5;
-
-    padding: 12px;
-
-    border-radius: 8px;
-
-    margin-top: 10px;
-
+    background: #66bb6a;
 }
 
 
-.info-row {
+.upload-btn {
 
-    padding: 5px 0;
-
+    background: #66bb6a;
 }
 
 
-.big-number {
-
-    font-size: 28px;
-
-    font-weight: bold;
-
-    text-align: center;
-
-    margin-top: 15px;
-
-    padding: 15px;
-
-    background: #e8f5e9;
-
-    border-radius: 10px;
-
-}
-
-
-.progress {
-
-    width: 100%;
-
-    height: 10px;
-
-    background: #ddd;
-
-    border-radius: 5px;
-
-    overflow: hidden;
-
-}
-
-
-.progress-bar {
-
-    height: 10px;
-
-    background: #4caf50;
-
-}
-
-
-.button-row {
-
-    display: flex;
-
-    gap: 8px;
-
-}
-
-
-.button-row button {
-
-    flex: 1;
-
-}
-
-
-.hidden {
-
-    display: none !important;
-
-}
-
-
-.upload-box {
+#uploadBox {
 
     background: white;
 
     padding: 15px;
 
     border-radius: 12px;
-
-    margin-top: 10px;
-
 }
 
 
-.file-input {
+.info-row {
 
-    font-size: 16px;
+    font-size: 18px;
 
+    margin-top: 10px;
+}
+
+
+.info-label {
+
+    font-weight: bold;
+}
+
+
+.qty-title {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    margin-top: 20px;
+}
+
+
+.qty-result {
+
+    background: #f1f8e9;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    margin-top: 10px;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+    text-align: center;
 }
 
 
 .status {
-
-    margin-top: 10px;
 
     padding: 12px;
 
@@ -276,32 +203,104 @@ button:active {
 
     background: #e8f5e9;
 
-    font-weight: bold;
-
-}
-
-
-.result-card {
-
-    background: #e8f5e9;
-
-    padding: 15px;
-
-    border-radius: 10px;
-
     margin-top: 10px;
 
+    font-size: 17px;
 }
 
 
-.qty-title {
+.scan-box {
 
-    font-size: 16px;
+    margin-top: 15px;
+}
+
+
+.scan-title {
+
+    font-size: 20px;
 
     font-weight: bold;
 
-    margin-top: 15px;
+    margin-bottom: 5px;
+}
 
+
+.nav-buttons {
+
+    display: flex;
+
+    gap: 6px;
+
+    margin-top: 10px;
+}
+
+
+.nav-buttons button {
+
+    flex: 1;
+}
+
+
+.hidden {
+
+    display: none !important;
+}
+
+
+/* =================================================
+   날짜 입력
+================================================= */
+
+.date-title {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    margin-top: 20px;
+}
+
+
+.date-inputs {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 8px;
+}
+
+
+.date-inputs input {
+
+    margin-top: 0;
+
+    text-align: center;
+
+    padding: 14px 5px;
+}
+
+
+.date-year {
+
+    flex: 2;
+}
+
+
+.date-month,
+.date-day {
+
+    flex: 1;
+}
+
+
+.date-separator {
+
+    font-size: 24px;
+
+    font-weight: bold;
 }
 
 
@@ -314,20 +313,15 @@ button:active {
 
 
 <div class="header">
-
     ourbox 오산센터 재고조사
-
 </div>
 
 
-<!-- =====================================================
-     엑셀 업로드
-====================================================== -->
+<!-- =================================================
+     업로드
+================================================= -->
 
-<div
-    id="uploadBox"
-    class="upload-box"
->
+<div id="uploadBox">
 
     <form
         id="uploadForm"
@@ -336,17 +330,7 @@ button:active {
         enctype="multipart/form-data"
     >
 
-        <label>
-
-            <b>
-                재고조사 엑셀 업로드
-            </b>
-
-        </label>
-
-
         <input
-            class="file-input"
             type="file"
             name="file"
             accept=".xlsx,.xls,.csv"
@@ -356,88 +340,47 @@ button:active {
 
         <button
             type="submit"
-            class="green-button"
+            class="upload-btn"
         >
-
-            엑셀 업로드
-
+            상품마스터 엑셀 업로드
         </button>
 
     </form>
 
 
-    <div
-        id="uploadStatus"
-        class="status hidden"
-    ></div>
+    <p
+        style="
+            font-size:14px;
+            color:#666;
+        "
+    >
+
+        ※ 업로드 엑셀의 시트2<br>
+
+        A열 = 화주사<br>
+
+        B열 = 바코드<br>
+
+        C열 = 입수량<br>
+
+        D열 = 상품명
+
+    </p>
 
 </div>
 
 
-<!-- =====================================================
-     메인
-====================================================== -->
-
-<div
-    id="app"
-></div>
-
-
-<!-- =====================================================
-     조사 완료 버튼
-====================================================== -->
-
-<div
-    id="completeBox"
-    class="card hidden"
->
-
-    <button
-        id="downloadBtn"
-        class="green-button"
-        onclick="download()"
-    >
-        엑셀 다운로드
-    </button>
-
-
-    <button
-        id="shareBtn"
-        class="green-button"
-        onclick="share()"
-    >
-        엑셀 공유
-    </button>
-
-
-    <button
-        class="green-button"
-        onclick="createQR()"
-    >
-        QR코드 생성
-    </button>
-
-</div>
-
-
-<!-- =====================================================
-     외부 JS
-====================================================== -->
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+<div id="app"></div>
 
 
 <script>
 
-window.INITIAL_DATA =
-    {{ data | tojson }};
-
-
-window.INITIAL_LOOKUP =
-    {{ lookup | tojson }};
-
+let mapping = {{ mapping|tojson }};
 
 </script>
+
+
+<script src="/static/script.js"></script>
 
 
 </body>
