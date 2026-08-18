@@ -358,6 +358,7 @@ function showRackScreen(){
                     랙 스캔
                 </div>
 
+
                 <input
                     id="rackInput"
                     type="text"
@@ -366,6 +367,7 @@ function showRackScreen(){
                     placeholder="랙을 스캔하거나 입력하세요"
                     onkeydown="rackKeyDown(event)"
                 >
+
 
                 <button
                     class="rack-btn"
@@ -395,12 +397,14 @@ function showRackScreen(){
                 inventoryData.length > 0
                 ?
                 `
+
                 <button
                     class="download-btn"
                     onclick="download()"
                 >
                     조사 결과 저장
                 </button>
+
 
                 <button
                     class="share-btn"
@@ -409,11 +413,13 @@ function showRackScreen(){
                     조사 결과 공유
                 </button>
 
+
                 <button
                     onclick="changeRack()"
                 >
                     랙 다시 입력
                 </button>
+
                 `
                 :
                 ""
@@ -551,10 +557,6 @@ function showProductScreen(){
             </div>
 
 
-            <!-- =========================================
-                 기존 랙 변경
-            ========================================== -->
-
             <button
                 onclick="changeRack()"
             >
@@ -562,9 +564,9 @@ function showProductScreen(){
             </button>
 
 
-            <!-- =========================================
+            <!-- =================================================
                  신규 재고등록
-            ========================================== -->
+            ================================================= -->
 
             <button
                 class="new-inventory-btn"
@@ -717,6 +719,13 @@ function changeRack(){
 
 
 /* =========================================================
+   =========================================================
+   신규 재고등록
+   =========================================================
+========================================================= */
+
+
+/* =========================================================
    신규 재고등록 화면
 ========================================================= */
 
@@ -747,21 +756,9 @@ function showNewInventoryScreen(){
             </div>
 
 
-            <!-- =====================================
-                 안내
-            ====================================== -->
-
-            <div
-                class="status"
-                style="text-align:center;"
-            >
-                상품마스터에 없는 신규 재고를 등록합니다.
-            </div>
-
-
-            <!-- =====================================
+            <!-- =============================================
                  랙
-            ====================================== -->
+            ============================================== -->
 
             <div class="qty-title">
                 랙
@@ -775,13 +772,13 @@ function showNewInventoryScreen(){
                 autocomplete="off"
                 placeholder="랙을 입력하거나 스캔하세요"
                 value="${escapeHtml(currentRack)}"
-                onkeydown="newInventoryRackKeyDown(event)"
+                onkeydown="newRackKeyDown(event)"
             >
 
 
-            <!-- =====================================
+            <!-- =============================================
                  상품명
-            ====================================== -->
+            ============================================== -->
 
             <div class="qty-title">
                 상품명
@@ -789,17 +786,39 @@ function showNewInventoryScreen(){
 
 
             <input
-                id="newProductName"
+                id="newProductNameInput"
                 type="text"
                 autocomplete="off"
-                placeholder="신규 상품명을 입력하세요"
+                placeholder="상품명을 입력하세요"
+                oninput="searchNewProductName()"
                 onkeydown="newProductNameKeyDown(event)"
             >
 
 
-            <!-- =====================================
+            <!-- =============================================
+                 상품 검색 결과
+            ============================================== -->
+
+            <div
+                id="newProductSearchResults"
+                class="product-search-results"
+            ></div>
+
+
+            <!-- =============================================
+                 선택된 화주사
+            ============================================== -->
+
+            <div
+                id="newProductOwner"
+                class="selected-product-info"
+                style="display:none;"
+            ></div>
+
+
+            <!-- =============================================
                  소비기한
-            ====================================== -->
+            ============================================== -->
 
             <div class="date-title">
                 소비기한
@@ -817,12 +836,14 @@ function showNewInventoryScreen(){
                     placeholder="년"
                     autocomplete="off"
                     oninput="newExpiryYearInput()"
-                    onkeydown="newInventoryDateKeyDown(event)"
+                    onkeydown="newDateKeyDown(event)"
                 >
+
 
                 <span class="date-separator">
                     -
                 </span>
+
 
                 <input
                     id="newExpiryMonth"
@@ -833,12 +854,14 @@ function showNewInventoryScreen(){
                     placeholder="월"
                     autocomplete="off"
                     oninput="newExpiryMonthInput()"
-                    onkeydown="newInventoryDateKeyDown(event)"
+                    onkeydown="newDateKeyDown(event)"
                 >
+
 
                 <span class="date-separator">
                     -
                 </span>
+
 
                 <input
                     id="newExpiryDay"
@@ -849,15 +872,15 @@ function showNewInventoryScreen(){
                     placeholder="일"
                     autocomplete="off"
                     oninput="newExpiryDayInput()"
-                    onkeydown="newInventoryDateKeyDown(event)"
+                    onkeydown="newDateKeyDown(event)"
                 >
 
             </div>
 
 
-            <!-- =====================================
+            <!-- =============================================
                  수량
-            ====================================== -->
+            ============================================== -->
 
             <div class="qty-title">
                 수량
@@ -865,18 +888,19 @@ function showNewInventoryScreen(){
 
 
             <input
-                id="newQuantity"
+                id="newQuantityInput"
                 type="text"
                 inputmode="numeric"
                 autocomplete="off"
                 placeholder="수량을 입력하세요"
+                oninput="cleanNewQuantityInput()"
                 onkeydown="newQuantityKeyDown(event)"
             >
 
 
-            <!-- =====================================
+            <!-- =============================================
                  저장
-            ====================================== -->
+            ============================================== -->
 
             <button
                 class="save-qty-btn"
@@ -886,12 +910,8 @@ function showNewInventoryScreen(){
             </button>
 
 
-            <!-- =====================================
-                 취소
-            ====================================== -->
-
             <button
-                onclick="cancelNewInventory()"
+                onclick="showProductScreen()"
             >
                 취소
             </button>
@@ -901,19 +921,15 @@ function showNewInventoryScreen(){
     `;
 
 
-    /*
-     * 신규 등록은 랙부터 입력
-     */
-
     focusInput("newRackInput");
 }
 
 
 /* =========================================================
-   신규 재고 - 랙 Enter
+   신규 랙 Enter
 ========================================================= */
 
-function newInventoryRackKeyDown(event){
+function newRackKeyDown(event){
 
     if(event.key !== "Enter"){
 
@@ -924,12 +940,298 @@ function newInventoryRackKeyDown(event){
     event.preventDefault();
 
 
-    focusInput("newProductName");
+    focusInput(
+        "newProductNameInput"
+    );
 }
 
 
 /* =========================================================
-   신규 재고 - 상품명 Enter
+   신규 상품명 검색
+========================================================= */
+
+function searchNewProductName(){
+
+    const input =
+        document.getElementById(
+            "newProductNameInput"
+        );
+
+
+    const resultBox =
+        document.getElementById(
+            "newProductSearchResults"
+        );
+
+
+    if(!input || !resultBox){
+
+        return;
+    }
+
+
+    const keyword =
+        input.value
+            .trim()
+            .toLowerCase();
+
+
+    /*
+     * 검색어가 없으면
+     * 검색결과 숨김
+     */
+
+    if(!keyword){
+
+        resultBox.innerHTML = "";
+
+        resultBox.style.display =
+            "none";
+
+        return;
+    }
+
+
+    const mappingData =
+        getMappingData();
+
+
+    /*
+     * 상품명 기준 검색
+     */
+
+    const results =
+        mappingData.filter(function(item){
+
+            const productName =
+                String(
+                    item["상품명"] ?? ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            return (
+                productName
+                .includes(keyword)
+            );
+
+        });
+
+
+    /*
+     * 최대 15개 표시
+     */
+
+    const limitedResults =
+        results.slice(
+            0,
+            15
+        );
+
+
+    if(limitedResults.length === 0){
+
+        resultBox.innerHTML = `
+
+            <div class="no-search-result">
+
+                일치하는 상품이 없습니다.
+
+            </div>
+
+        `;
+
+        resultBox.style.display =
+            "block";
+
+        return;
+    }
+
+
+    /*
+     * 검색 결과 생성
+     */
+
+    resultBox.innerHTML =
+        limitedResults.map(function(item, index){
+
+            return `
+
+                <div
+                    class="product-search-item"
+                    onclick="selectNewProduct(${mappingData.indexOf(item)})"
+                >
+
+                    <div class="product-search-name">
+
+                        ${escapeHtml(
+                            item["상품명"]
+                        )}
+
+                    </div>
+
+
+                    <div class="product-search-sub">
+
+                        ${escapeHtml(
+                            item["화주사"] || ""
+                        )}
+
+                        ${
+                            item["바코드"]
+                            ?
+                            " · " +
+                            escapeHtml(
+                                item["바코드"]
+                            )
+                            :
+                            ""
+                        }
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+
+    resultBox.style.display =
+        "block";
+}
+
+
+/* =========================================================
+   신규 상품 선택
+========================================================= */
+
+function selectNewProduct(index){
+
+    const mappingData =
+        getMappingData();
+
+
+    const product =
+        mappingData[index];
+
+
+    if(!product){
+
+        return;
+    }
+
+
+    const nameInput =
+        document.getElementById(
+            "newProductNameInput"
+        );
+
+
+    const resultBox =
+        document.getElementById(
+            "newProductSearchResults"
+        );
+
+
+    const ownerBox =
+        document.getElementById(
+            "newProductOwner"
+        );
+
+
+    /*
+     * 상품명 자동 입력
+     */
+
+    if(nameInput){
+
+        nameInput.value =
+            String(
+                product["상품명"] ?? ""
+            ).trim();
+    }
+
+
+    /*
+     * 화주사 표시
+     */
+
+    if(ownerBox){
+
+        const owner =
+            String(
+                product["화주사"] ?? ""
+            ).trim();
+
+
+        if(owner){
+
+            ownerBox.innerHTML =
+
+                "화주사 : <b>"
+                +
+                escapeHtml(owner)
+                +
+                "</b>";
+
+            ownerBox.style.display =
+                "block";
+
+        }else{
+
+            ownerBox.innerHTML = "";
+
+            ownerBox.style.display =
+                "none";
+        }
+
+    }
+
+
+    /*
+     * 검색 결과 닫기
+     */
+
+    if(resultBox){
+
+        resultBox.innerHTML = "";
+
+        resultBox.style.display =
+            "none";
+    }
+
+
+    /*
+     * 상품 선택 정보 저장
+     *
+     * 신규재고이므로
+     * 바코드는 저장하지 않음.
+     */
+
+    currentProduct = {
+
+        "상품명":
+            product["상품명"] || "",
+
+        "화주사":
+            product["화주사"] || "",
+
+        "바코드":
+            ""
+
+    };
+
+
+    focusInput(
+        "newExpiryYear"
+    );
+}
+
+
+/* =========================================================
+   신규 상품명 Enter
 ========================================================= */
 
 function newProductNameKeyDown(event){
@@ -943,12 +1245,135 @@ function newProductNameKeyDown(event){
     event.preventDefault();
 
 
-    focusInput("newExpiryYear");
+    const input =
+        document.getElementById(
+            "newProductNameInput"
+        );
+
+
+    if(!input){
+
+        return;
+    }
+
+
+    const keyword =
+        input.value.trim();
+
+
+    if(!keyword){
+
+        alert(
+            "상품명을 입력해주세요."
+        );
+
+        return;
+    }
+
+
+    const mappingData =
+        getMappingData();
+
+
+    /*
+     * 정확히 일치하는 상품 우선
+     */
+
+    const exact =
+        mappingData.find(function(item){
+
+            return String(
+                item["상품명"] ?? ""
+            ).trim()
+            === keyword;
+
+        });
+
+
+    if(exact){
+
+        selectNewProduct(
+            mappingData.indexOf(exact)
+        );
+
+        return;
+    }
+
+
+    /*
+     * 연관검색 첫 번째 상품 선택
+     */
+
+    const first =
+        mappingData.find(function(item){
+
+            const name =
+                String(
+                    item["상품명"] ?? ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            return name.includes(
+                keyword.toLowerCase()
+            );
+
+        });
+
+
+    if(first){
+
+        selectNewProduct(
+            mappingData.indexOf(first)
+        );
+
+        return;
+    }
+
+
+    /*
+     * 상품마스터에 없어도
+     * 신규상품으로 직접 입력 가능
+     */
+
+    currentProduct = {
+
+        "상품명":
+            keyword,
+
+        "화주사":
+            "",
+
+        "바코드":
+            ""
+
+    };
+
+
+    const resultBox =
+        document.getElementById(
+            "newProductSearchResults"
+        );
+
+
+    if(resultBox){
+
+        resultBox.innerHTML = "";
+
+        resultBox.style.display =
+            "none";
+    }
+
+
+    focusInput(
+        "newExpiryYear"
+    );
 }
 
 
 /* =========================================================
-   신규 재고 - 소비기한 년
+   신규 소비기한 - 년
 ========================================================= */
 
 function newExpiryYearInput(){
@@ -989,7 +1414,7 @@ function newExpiryYearInput(){
 
 
 /* =========================================================
-   신규 재고 - 소비기한 월
+   신규 소비기한 - 월
 ========================================================= */
 
 function newExpiryMonthInput(){
@@ -1030,7 +1455,7 @@ function newExpiryMonthInput(){
 
 
 /* =========================================================
-   신규 재고 - 소비기한 일
+   신규 소비기한 - 일
 ========================================================= */
 
 function newExpiryDayInput(){
@@ -1064,17 +1489,17 @@ function newExpiryDayInput(){
 
 
         focusInput(
-            "newQuantity"
+            "newQuantityInput"
         );
     }
 }
 
 
 /* =========================================================
-   신규 재고 - 날짜 Enter
+   신규 날짜 Enter
 ========================================================= */
 
-function newInventoryDateKeyDown(event){
+function newDateKeyDown(event){
 
     if(event.key !== "Enter"){
 
@@ -1106,15 +1531,40 @@ function newInventoryDateKeyDown(event){
     else if(id === "newExpiryDay"){
 
         focusInput(
-            "newQuantity"
+            "newQuantityInput"
         );
-
     }
 }
 
 
 /* =========================================================
-   신규 재고 - 수량 Enter
+   신규 수량 입력
+========================================================= */
+
+function cleanNewQuantityInput(){
+
+    const input =
+        document.getElementById(
+            "newQuantityInput"
+        );
+
+
+    if(!input){
+
+        return;
+    }
+
+
+    input.value =
+        input.value.replace(
+            /[^0-9]/g,
+            ""
+        );
+}
+
+
+/* =========================================================
+   신규 수량 Enter
 ========================================================= */
 
 function newQuantityKeyDown(event){
@@ -1133,7 +1583,7 @@ function newQuantityKeyDown(event){
 
 
 /* =========================================================
-   신규 재고 - 소비기한 가져오기
+   신규 소비기한 가져오기
 ========================================================= */
 
 function getNewExpiryDate(){
@@ -1157,7 +1607,7 @@ function getNewExpiryDate(){
 
 
     /*
-     * 전부 비어 있으면 빈 값 허용
+     * 전부 비어 있으면 빈 값
      */
 
     if(
@@ -1257,19 +1707,25 @@ function saveNewInventory(){
         );
 
 
-    const productNameInput =
+    const productInput =
         document.getElementById(
-            "newProductName"
+            "newProductNameInput"
         );
 
 
     const quantityInput =
         document.getElementById(
-            "newQuantity"
+            "newQuantityInput"
         );
 
 
-    if(!rackInput){
+    if(
+        !rackInput
+        ||
+        !productInput
+        ||
+        !quantityInput
+    ){
 
         return;
     }
@@ -1280,12 +1736,12 @@ function saveNewInventory(){
 
 
     const productName =
-        productNameInput?.value.trim() || "";
+        productInput.value.trim();
 
 
     const quantity =
         cleanNumber(
-            quantityInput?.value
+            quantityInput.value
         );
 
 
@@ -1321,7 +1777,7 @@ function saveNewInventory(){
 
 
         focusInput(
-            "newProductName"
+            "newProductNameInput"
         );
 
 
@@ -1344,7 +1800,7 @@ function saveNewInventory(){
 
 
     /*
-     * 수량 확인
+     * 수량
      */
 
     if(quantity <= 0){
@@ -1355,7 +1811,7 @@ function saveNewInventory(){
 
 
         focusInput(
-            "newQuantity"
+            "newQuantityInput"
         );
 
 
@@ -1364,47 +1820,57 @@ function saveNewInventory(){
 
 
     /*
+     * 화주사
+     *
+     * 상품마스터에서 선택했다면 자동 적용
+     * 직접 입력한 신규상품이면 빈칸
+     */
+
+    let owner = "";
+
+
+    if(currentProduct){
+
+        owner =
+            String(
+                currentProduct["화주사"] ?? ""
+            ).trim();
+    }
+
+
+    /*
      * =====================================================
-     * 신규 재고 데이터 추가
+     * 신규 재고 저장
      *
-     * 시트1
-     *
-     * A 바코드 = 빈칸
-     * B 랙
-     * C 소비기한
-     * D 수량
-     * E 상품명
-     * F 화주사 = 빈칸
+     * 바코드는 빈칸
      * =====================================================
      */
 
     inventoryData.push({
 
-        "바코드": "",
+        "바코드":
+            "",
 
-        "랙": rack,
+        "랙":
+            rack,
 
-        "소비기한": expiry,
+        "소비기한":
+            expiry,
 
-        "수량": quantity,
+        "수량":
+            quantity,
 
-        "상품명": productName,
+        "상품명":
+            productName,
 
-        "화주사": ""
+        "화주사":
+            owner
 
     });
 
 
     inventoryCount =
         inventoryData.length;
-
-
-    /*
-     * 현재 랙 기억
-     */
-
-    currentRack =
-        rack;
 
 
     /*
@@ -1415,8 +1881,16 @@ function saveNewInventory(){
 
 
     /*
-     * 저장 완료
+     * 초기화
      */
+
+    currentProduct = null;
+
+    currentRack = "";
+
+
+    saveLocalData();
+
 
     alert(
         "신규 재고가 등록되었습니다."
@@ -1424,37 +1898,8 @@ function saveNewInventory(){
 
 
     /*
-     * 다음 조사 화면
+     * 다시 랙 입력 화면
      */
-
-    currentProduct = null;
-
-
-    showRackScreen();
-}
-
-
-/* =========================================================
-   신규 재고 취소
-========================================================= */
-
-function cancelNewInventory(){
-
-    currentProduct = null;
-
-
-    /*
-     * 기존 랙이 있으면
-     * 기존 상품 스캔 화면으로 복귀
-     */
-
-    if(currentRack){
-
-        showProductScreen();
-
-        return;
-    }
-
 
     showRackScreen();
 }
@@ -1660,7 +2105,6 @@ function showQuantityScreen(){
                 제품 취소
             </button>
 
-
         </div>
 
         `;
@@ -1673,7 +2117,7 @@ function showQuantityScreen(){
 
 
 /* =========================================================
-   날짜 - 년도
+   날짜 - 년
 ========================================================= */
 
 function dateYearInput(){
@@ -1691,9 +2135,7 @@ function dateYearInput(){
         );
 
 
-    if(
-        input.value.length >= 4
-    ){
+    if(input.value.length >= 4){
 
         input.value =
             input.value.substring(
@@ -1728,9 +2170,7 @@ function dateMonthInput(){
         );
 
 
-    if(
-        input.value.length >= 2
-    ){
+    if(input.value.length >= 2){
 
         input.value =
             input.value.substring(
@@ -1765,9 +2205,7 @@ function dateDayInput(){
         );
 
 
-    if(
-        input.value.length >= 2
-    ){
+    if(input.value.length >= 2){
 
         input.value =
             input.value.substring(
@@ -1821,7 +2259,6 @@ function dateKeyDown(event){
         focusInput(
             "boxQuantity"
         );
-
     }
 }
 
@@ -1936,7 +2373,7 @@ function getExpiryDate(){
 
 
 /* =========================================================
-   박스수 입력
+   박스수 Enter
 ========================================================= */
 
 function boxQuantityKeyDown(event){
@@ -1957,7 +2394,7 @@ function boxQuantityKeyDown(event){
 
 
 /* =========================================================
-   낱개수량 입력
+   낱개수량 Enter
 ========================================================= */
 
 function singleQuantityKeyDown(event){
@@ -1983,7 +2420,7 @@ function singleQuantityKeyDown(event){
 
 
 /* =========================================================
-   총 수량 자동 계산
+   총 수량 계산
 ========================================================= */
 
 function calculateTotalQuantity(){
@@ -2069,7 +2506,7 @@ function calculateTotalQuantity(){
 
 
 /* =========================================================
-   기존 수량 저장
+   기존 재고 수량 저장
 ========================================================= */
 
 function saveQuantity(){
@@ -2143,10 +2580,6 @@ function saveQuantity(){
         return;
     }
 
-
-    /*
-     * 기존 재고 데이터
-     */
 
     inventoryData.push({
 
@@ -2407,9 +2840,7 @@ async function share(){
         encodeURIComponent(id);
 
 
-    if(
-        navigator.share
-    ){
+    if(navigator.share){
 
         try{
 
@@ -2675,7 +3106,7 @@ function closeQR(){
 
 
 /* =========================================================
-   업로드 폼 처리
+   업로드 폼
 ========================================================= */
 
 function setupUploadForm(){
