@@ -5,18 +5,28 @@
 
 <meta charset="UTF-8">
 
+
 <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
 >
 
-<title>ourbox 오산센터 재고조사</title>
+
+<title>
+    ourbox 오산센터 재고조사
+</title>
 
 
 <style>
 
+/* =================================================
+   기본
+================================================= */
+
 * {
+
     box-sizing: border-box;
+
 }
 
 
@@ -29,6 +39,7 @@ body {
     margin: 0;
 
     background: #f0f9f4;
+
 }
 
 
@@ -43,8 +54,13 @@ body {
     color: #2e7d32;
 
     margin-bottom: 15px;
+
 }
 
+
+/* =================================================
+   카드
+================================================= */
 
 .card {
 
@@ -58,8 +74,13 @@ body {
 
     box-shadow:
         0 2px 6px rgba(0,0,0,0.08);
+
 }
 
+
+/* =================================================
+   입력
+================================================= */
 
 input {
 
@@ -74,6 +95,7 @@ input {
     border: 1px solid #ccc;
 
     border-radius: 8px;
+
 }
 
 
@@ -94,14 +116,20 @@ button {
     border: none;
 
     border-radius: 8px;
+
 }
 
 
 button:active {
 
     opacity: 0.7;
+
 }
 
+
+/* =================================================
+   버튼
+================================================= */
 
 .product-check-btn,
 .download-btn,
@@ -110,36 +138,42 @@ button:active {
     background: #66bb6a;
 
     color: white;
+
 }
 
 
 .rack-btn {
 
     background: #66bb6a;
+
 }
 
 
 .barcode-btn {
 
     background: #66bb6a;
+
 }
 
 
 .save-qty-btn {
 
     background: #66bb6a;
+
 }
 
 
 .qr-btn {
 
     background: #66bb6a;
+
 }
 
 
 .upload-btn {
 
     background: #66bb6a;
+
 }
 
 
@@ -149,13 +183,16 @@ button:active {
 
 .new-inventory-btn {
 
-    background: #ff9800;
-
-    color: white;
+    background: #2e7d32;
 
     font-weight: bold;
+
 }
 
+
+/* =================================================
+   업로드
+================================================= */
 
 #uploadBox {
 
@@ -164,20 +201,27 @@ button:active {
     padding: 15px;
 
     border-radius: 12px;
+
 }
 
+
+/* =================================================
+   정보
+================================================= */
 
 .info-row {
 
     font-size: 18px;
 
     margin-top: 10px;
+
 }
 
 
 .info-label {
 
     font-weight: bold;
+
 }
 
 
@@ -188,6 +232,7 @@ button:active {
     font-weight: bold;
 
     margin-top: 20px;
+
 }
 
 
@@ -206,6 +251,7 @@ button:active {
     font-weight: bold;
 
     text-align: center;
+
 }
 
 
@@ -220,12 +266,14 @@ button:active {
     margin-top: 10px;
 
     font-size: 17px;
+
 }
 
 
 .scan-box {
 
     margin-top: 15px;
+
 }
 
 
@@ -236,6 +284,7 @@ button:active {
     font-weight: bold;
 
     margin-bottom: 5px;
+
 }
 
 
@@ -246,18 +295,21 @@ button:active {
     gap: 6px;
 
     margin-top: 10px;
+
 }
 
 
 .nav-buttons button {
 
     flex: 1;
+
 }
 
 
 .hidden {
 
     display: none !important;
+
 }
 
 
@@ -272,6 +324,7 @@ button:active {
     font-weight: bold;
 
     margin-top: 20px;
+
 }
 
 
@@ -284,6 +337,7 @@ button:active {
     gap: 6px;
 
     margin-top: 8px;
+
 }
 
 
@@ -294,12 +348,14 @@ button:active {
     text-align: center;
 
     padding: 14px 5px;
+
 }
 
 
 .date-year {
 
     flex: 2;
+
 }
 
 
@@ -307,6 +363,7 @@ button:active {
 .date-day {
 
     flex: 1;
+
 }
 
 
@@ -315,8 +372,157 @@ button:active {
     font-size: 24px;
 
     font-weight: bold;
+
 }
 
+
+/* =================================================
+   신규 상품 검색 결과
+================================================= */
+
+.product-search-results {
+
+    display: none;
+
+    margin-top: 5px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+
+    background: white;
+
+    overflow: hidden;
+
+    max-height: 320px;
+
+    overflow-y: auto;
+
+}
+
+
+.product-search-item {
+
+    padding: 14px;
+
+    border-bottom: 1px solid #eee;
+
+    cursor: pointer;
+
+    background: white;
+
+}
+
+
+.product-search-item:last-child {
+
+    border-bottom: none;
+
+}
+
+
+.product-search-item:active {
+
+    background: #e8f5e9;
+
+}
+
+
+.product-search-name {
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    color: #222;
+
+}
+
+
+.product-search-sub {
+
+    margin-top: 5px;
+
+    font-size: 14px;
+
+    color: #777;
+
+}
+
+
+.no-search-result {
+
+    padding: 15px;
+
+    text-align: center;
+
+    color: #777;
+
+    font-size: 16px;
+
+}
+
+
+/* =================================================
+   선택된 상품 정보
+================================================= */
+
+.selected-product-info {
+
+    margin-top: 8px;
+
+    padding: 12px;
+
+    background: #e8f5e9;
+
+    border-radius: 8px;
+
+    font-size: 16px;
+
+}
+
+
+/* =================================================
+   모바일 최적화
+================================================= */
+
+@media (max-width: 480px) {
+
+    body {
+
+        padding: 10px;
+
+    }
+
+
+    .header {
+
+        font-size: 22px;
+
+    }
+
+
+    .card {
+
+        padding: 15px;
+
+    }
+
+
+    input {
+
+        font-size: 19px;
+
+    }
+
+
+    button {
+
+        font-size: 17px;
+
+    }
+
+}
 
 </style>
 
@@ -326,8 +532,14 @@ button:active {
 <body>
 
 
+<!-- =================================================
+     제목
+================================================= -->
+
 <div class="header">
+
     ourbox 오산센터 재고조사
+
 </div>
 
 
@@ -356,7 +568,9 @@ button:active {
             type="submit"
             class="upload-btn"
         >
+
             상품마스터 엑셀 업로드
+
         </button>
 
     </form>
@@ -384,8 +598,16 @@ button:active {
 </div>
 
 
+<!-- =================================================
+     재고조사 화면
+================================================= -->
+
 <div id="app"></div>
 
+
+<!-- =================================================
+     상품마스터 데이터
+================================================= -->
 
 <script>
 
