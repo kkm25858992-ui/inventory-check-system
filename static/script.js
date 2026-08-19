@@ -12,6 +12,12 @@ let inventoryCount = 0;
 
 let fileId = null;
 
+/*
+ * 조사 완료건 수정 상태
+ * -1이면 수정 중인 건이 없습니다.
+ */
+let editingInventoryIndex = -1;
+
 
 /* =========================================================
    상품 마스터 데이터
@@ -266,6 +272,7 @@ function resetInventoryForNewUpload(){
     inventoryCount = 0;
 
     fileId = null;
+    editingInventoryIndex = -1;
 
 
     /*
@@ -293,6 +300,8 @@ function resetInventoryForNewUpload(){
 ========================================================= */
 
 function init(){
+
+    editingInventoryIndex = -1;
 
     data =
         getMappingData();
@@ -443,18 +452,16 @@ function showRackScreen(){
             </div>
 
 
-            <div
-                class="status"
-                style="text-align:center;"
+            <button
+                class="completed-btn"
+                onclick="showCompletedInventoryScreen()"
             >
-
-                조사 완료:
+                조사 완료건
                 <b>
                     ${inventoryData.length}
                 </b>
-                건
-
-            </div>
+                건 - 선택하여 수정
+            </button>
 
 
             ${
@@ -495,6 +502,725 @@ function showRackScreen(){
 
 
     focusInput("rackInput");
+}
+
+
+/* =========================================================
+   조사 완료건 목록
+========================================================= */
+
+function showCompletedInventoryScreen(){
+
+    const app =
+        document.getElementById("app");
+
+
+    if(!app){
+
+        return;
+    }
+
+
+    if(
+        !inventoryData
+        ||
+        inventoryData.length === 0
+    ){
+
+        alert(
+            "조사 완료된 건이 없습니다."
+        );
+
+        showRackScreen();
+        return;
+    }
+
+
+    const rows =
+        inventoryData
+        .map(function(item, index){
+
+            const barcode =
+                String(item["바코드"] ?? "").trim();
+
+            const rack =
+                String(item["랙"] ?? "").trim();
+
+            const expiry =
+                String(item["소비기한"] ?? "").trim();
+
+            const quantity =
+                cleanNumber(item["수량"]);
+
+            const productName =
+                String(item["상품명"] ?? "").trim();
+
+            const owner =
+                String(item["화주사"] ?? "").trim();
+
+
+            return `
+
+                <div class="completed-item">
+
+                    <div class="completed-item-title">
+                        ${index + 1}번 조사
+                    </div>
+
+
+                    <div class="completed-item-info">
+
+                        <div>
+                            <b>상품명:</b>
+                            ${escapeHtml(productName || "신규 재고")}
+                        </div>
+
+                        <div>
+                            <b>화주사:</b>
+                            ${escapeHtml(owner)}
+                        </div>
+
+                        <div>
+                            <b>바코드:</b>
+                            ${escapeHtml(barcode || "-")}
+                        </div>
+
+                        <div>
+                            <b>랙:</b>
+                            ${escapeHtml(rack || "-")}
+                        </div>
+
+                        <div>
+                            <b>소비기한:</b>
+                            ${escapeHtml(expiry || "-")}
+                        </div>
+
+                        <div>
+                            <b>수량:</b>
+                            ${quantity.toLocaleString()}
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        class="edit-btn"
+                        onclick="showEditInventoryScreen(${index})"
+                    >
+                        이 조사건 수정
+                    </button>
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+
+
+    app.innerHTML = `
+
+        <div class="card">
+
+            <div class="new-title">
+                조사 완료건
+            </div>
+
+
+            <div
+                class="status"
+                style="text-align:center;"
+            >
+                총
+                <b>${inventoryData.length}</b>
+                건의 조사 완료건이 있습니다.
+                <br>
+                수정할 조사건을 선택해주세요.
+            </div>
+
+
+            <div class="completed-list">
+                ${rows}
+            </div>
+
+
+            <button
+                class="back-btn"
+                onclick="showRackScreen()"
+            >
+                조사 화면으로 돌아가기
+            </button>
+
+        </div>
+
+    `;
+}
+
+
+/* =========================================================
+   조사 완료건 수정 화면
+========================================================= */
+
+function showEditInventoryScreen(index){
+
+    if(
+        !Number.isInteger(index)
+        ||
+        index < 0
+        ||
+        index >= inventoryData.length
+    ){
+
+        alert(
+            "수정할 조사건을 찾을 수 없습니다."
+        );
+
+        showCompletedInventoryScreen();
+        return;
+    }
+
+
+    editingInventoryIndex = index;
+
+
+    const item =
+        inventoryData[index];
+
+
+    const app =
+        document.getElementById("app");
+
+
+    if(!app){
+
+        return;
+    }
+
+
+    const barcode =
+        String(item["바코드"] ?? "").trim();
+
+    const productName =
+        String(item["상품명"] ?? "").trim();
+
+    const owner =
+        String(item["화주사"] ?? "").trim();
+
+    const rack =
+        String(item["랙"] ?? "").trim();
+
+    const expiry =
+        String(item["소비기한"] ?? "").trim();
+
+    const quantity =
+        cleanNumber(item["수량"]);
+
+
+    let expiryYear = "";
+    let expiryMonth = "";
+    let expiryDay = "";
+
+
+    if(/^\d{4}-\d{2}-\d{2}$/.test(expiry)){
+
+        const parts = expiry.split("-");
+
+        expiryYear = parts[0];
+        expiryMonth = parts[1];
+        expiryDay = parts[2];
+    }
+
+
+    app.innerHTML = `
+
+        <div class="card">
+
+            <div class="new-title">
+                조사 완료건 수정
+            </div>
+
+
+            <div class="status">
+                <b>${index + 1}번 조사건</b>을 수정합니다.
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">바코드:</span>
+                ${escapeHtml(barcode || "-")}
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">화주사:</span>
+                ${escapeHtml(owner || "-")}
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">상품명:</span>
+                ${escapeHtml(productName || "신규 재고")}
+            </div>
+
+
+            <div class="qty-title">
+                랙
+            </div>
+
+            <input
+                id="editRackInput"
+                type="text"
+                inputmode="text"
+                autocomplete="off"
+                value="${escapeHtml(rack)}"
+                placeholder="랙을 입력하세요"
+                onkeydown="editRackKeyDown(event)"
+            >
+
+
+            <div class="date-title">
+                소비기한
+            </div>
+
+
+            <div class="date-inputs">
+
+                <input
+                    id="editExpiryYear"
+                    class="date-year"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="4"
+                    value="${escapeHtml(expiryYear)}"
+                    placeholder="년"
+                    autocomplete="off"
+                    oninput="editDateYearInput()"
+                    onkeydown="editDateKeyDown(event)"
+                >
+
+                <span class="date-separator">-</span>
+
+                <input
+                    id="editExpiryMonth"
+                    class="date-month"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="2"
+                    value="${escapeHtml(expiryMonth)}"
+                    placeholder="월"
+                    autocomplete="off"
+                    oninput="editDateMonthInput()"
+                    onkeydown="editDateKeyDown(event)"
+                >
+
+                <span class="date-separator">-</span>
+
+                <input
+                    id="editExpiryDay"
+                    class="date-day"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="2"
+                    value="${escapeHtml(expiryDay)}"
+                    placeholder="일"
+                    autocomplete="off"
+                    oninput="editDateDayInput()"
+                    onkeydown="editDateKeyDown(event)"
+                >
+
+            </div>
+
+
+            <div class="qty-title">
+                총 수량
+            </div>
+
+            <input
+                id="editQuantityInput"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                value="${quantity}"
+                placeholder="수량을 입력하세요"
+                onkeydown="editQuantityKeyDown(event)"
+            >
+
+
+            <div
+                class="status"
+                style="text-align:center;"
+            >
+                현재 수량:
+                <b>${quantity.toLocaleString()}</b>
+            </div>
+
+
+            <button
+                class="save-new-btn"
+                onclick="saveEditedInventory()"
+            >
+                수정 내용 저장
+            </button>
+
+
+            <button
+                onclick="showCompletedInventoryScreen()"
+            >
+                수정 취소
+            </button>
+
+        </div>
+
+    `;
+
+
+    focusInput("editRackInput");
+}
+
+
+/* =========================================================
+   수정 - 랙 Enter
+========================================================= */
+
+function editRackKeyDown(event){
+
+    if(event.key !== "Enter"){
+
+        return;
+    }
+
+
+    event.preventDefault();
+
+    focusInput("editExpiryYear");
+}
+
+
+/* =========================================================
+   수정 - 날짜 년
+========================================================= */
+
+function editDateYearInput(){
+
+    const input =
+        document.getElementById("editExpiryYear");
+
+
+    if(!input){
+
+        return;
+    }
+
+
+    input.value =
+        input.value.replace(/[^0-9]/g, "");
+
+
+    if(input.value.length >= 4){
+
+        input.value =
+            input.value.substring(0, 4);
+
+        focusInput("editExpiryMonth");
+    }
+}
+
+
+/* =========================================================
+   수정 - 날짜 월
+========================================================= */
+
+function editDateMonthInput(){
+
+    const input =
+        document.getElementById("editExpiryMonth");
+
+
+    if(!input){
+
+        return;
+    }
+
+
+    input.value =
+        input.value.replace(/[^0-9]/g, "");
+
+
+    if(input.value.length >= 2){
+
+        input.value =
+            input.value.substring(0, 2);
+
+        focusInput("editExpiryDay");
+    }
+}
+
+
+/* =========================================================
+   수정 - 날짜 일
+========================================================= */
+
+function editDateDayInput(){
+
+    const input =
+        document.getElementById("editExpiryDay");
+
+
+    if(!input){
+
+        return;
+    }
+
+
+    input.value =
+        input.value.replace(/[^0-9]/g, "");
+
+
+    if(input.value.length >= 2){
+
+        input.value =
+            input.value.substring(0, 2);
+
+        focusInput("editQuantityInput");
+    }
+}
+
+
+/* =========================================================
+   수정 - 날짜 Enter
+========================================================= */
+
+function editDateKeyDown(event){
+
+    if(event.key !== "Enter"){
+
+        return;
+    }
+
+
+    event.preventDefault();
+
+
+    const id =
+        event.target.id;
+
+
+    if(id === "editExpiryYear"){
+
+        focusInput("editExpiryMonth");
+
+    }
+    else if(id === "editExpiryMonth"){
+
+        focusInput("editExpiryDay");
+
+    }
+    else if(id === "editExpiryDay"){
+
+        focusInput("editQuantityInput");
+    }
+}
+
+
+/* =========================================================
+   수정 - 수량 Enter
+========================================================= */
+
+function editQuantityKeyDown(event){
+
+    if(event.key !== "Enter"){
+
+        return;
+    }
+
+
+    event.preventDefault();
+
+    saveEditedInventory();
+}
+
+
+/* =========================================================
+   수정 - 소비기한 읽기
+========================================================= */
+
+function getEditedExpiryDate(){
+
+    const year =
+        document.getElementById("editExpiryYear")?.value.trim() || "";
+
+    const month =
+        document.getElementById("editExpiryMonth")?.value.trim() || "";
+
+    const day =
+        document.getElementById("editExpiryDay")?.value.trim() || "";
+
+
+    if(!year && !month && !day){
+
+        return "";
+    }
+
+
+    if(
+        year.length !== 4
+        ||
+        month.length !== 2
+        ||
+        day.length !== 2
+    ){
+
+        alert(
+            "소비기한을 년-월-일 형식으로 입력해주세요."
+        );
+
+        return null;
+    }
+
+
+    const monthNumber =
+        Number(month);
+
+
+    if(
+        monthNumber < 1
+        ||
+        monthNumber > 12
+    ){
+
+        alert(
+            "월은 01~12 사이로 입력해주세요."
+        );
+
+        focusInput("editExpiryMonth");
+
+        return null;
+    }
+
+
+    const dayNumber =
+        Number(day);
+
+
+    if(
+        dayNumber < 1
+        ||
+        dayNumber > 31
+    ){
+
+        alert(
+            "일은 01~31 사이로 입력해주세요."
+        );
+
+        focusInput("editExpiryDay");
+
+        return null;
+    }
+
+
+    return (
+        year
+        + "-"
+        + month
+        + "-"
+        + day
+    );
+}
+
+
+/* =========================================================
+   조사 완료건 수정 저장
+========================================================= */
+
+function saveEditedInventory(){
+
+    if(
+        !Number.isInteger(editingInventoryIndex)
+        ||
+        editingInventoryIndex < 0
+        ||
+        editingInventoryIndex >= inventoryData.length
+    ){
+
+        alert(
+            "수정할 조사건을 찾을 수 없습니다."
+        );
+
+        showCompletedInventoryScreen();
+        return;
+    }
+
+
+    const rackInput =
+        document.getElementById("editRackInput");
+
+    const rack =
+        rackInput?.value.trim() || "";
+
+
+    if(!rack){
+
+        alert(
+            "랙을 입력해주세요."
+        );
+
+        focusInput("editRackInput");
+        return;
+    }
+
+
+    const expiry =
+        getEditedExpiryDate();
+
+
+    if(expiry === null){
+
+        return;
+    }
+
+
+    const quantity =
+        cleanNumber(
+            document.getElementById("editQuantityInput")?.value
+        );
+
+
+    if(quantity <= 0){
+
+        alert(
+            "수량을 입력해주세요."
+        );
+
+        focusInput("editQuantityInput");
+        return;
+    }
+
+
+    const item =
+        inventoryData[editingInventoryIndex];
+
+
+    item["랙"] = rack;
+    item["소비기한"] = expiry;
+    item["수량"] = quantity;
+
+
+    inventoryCount =
+        inventoryData.length;
+
+
+    saveLocalData();
+
+
+    editingInventoryIndex = -1;
+
+
+    alert(
+        "조사 완료건이 수정되었습니다."
+    );
+
+
+    showCompletedInventoryScreen();
 }
 
 
