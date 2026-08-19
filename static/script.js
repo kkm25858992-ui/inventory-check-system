@@ -610,6 +610,13 @@ function showCompletedInventoryScreen(){
                         이 조사건 수정
                     </button>
 
+                    <button
+                        class="delete-btn"
+                        onclick="deleteInventoryItem(${index})"
+                    >
+                        잘못 등록한 조사건 삭제
+                    </button>
+
                 </div>
 
             `;
@@ -757,10 +764,17 @@ function showEditInventoryScreen(index){
             </div>
 
 
-            <div class="info-row">
-                <span class="info-label">상품명:</span>
-                ${escapeHtml(productName || "신규 재고")}
+            <div class="qty-title">
+                상품명
             </div>
+
+            <input
+                id="editProductNameInput"
+                type="text"
+                autocomplete="off"
+                value="${escapeHtml(productName)}"
+                placeholder="상품명을 입력하세요"
+            >
 
 
             <div class="qty-title">
@@ -1129,6 +1143,77 @@ function getEditedExpiryDate(){
 
 
 /* =========================================================
+   조사 완료건 삭제
+========================================================= */
+
+function deleteInventoryItem(index){
+
+    if(
+        !Number.isInteger(index)
+        ||
+        index < 0
+        ||
+        index >= inventoryData.length
+    ){
+
+        alert(
+            "삭제할 조사건을 찾을 수 없습니다."
+        );
+
+        showCompletedInventoryScreen();
+        return;
+    }
+
+
+    const item =
+        inventoryData[index];
+
+    const productName =
+        String(item["상품명"] ?? "").trim()
+        || "신규 재고";
+
+    const rack =
+        String(item["랙"] ?? "").trim()
+        || "-";
+
+    const quantity =
+        cleanNumber(item["수량"]);
+
+
+    const confirmed =
+        confirm(
+            "잘못 등록한 조사건을 삭제하시겠습니까?\n\n"
+            + "상품명: " + productName + "\n"
+            + "랙: " + rack + "\n"
+            + "수량: " + quantity.toLocaleString() + "\n\n"
+            + "삭제 후에는 해당 조사건이 복구되지 않습니다."
+        );
+
+
+    if(!confirmed){
+        return;
+    }
+
+
+    inventoryData.splice(index, 1);
+
+    inventoryCount =
+        inventoryData.length;
+
+    editingInventoryIndex = -1;
+
+    saveLocalData();
+
+
+    alert(
+        "잘못 등록한 조사건이 삭제되었습니다."
+    );
+
+    showCompletedInventoryScreen();
+}
+
+
+/* =========================================================
    조사 완료건 수정 저장
 ========================================================= */
 
@@ -1147,6 +1232,24 @@ function saveEditedInventory(){
         );
 
         showCompletedInventoryScreen();
+        return;
+    }
+
+
+    const productNameInput =
+        document.getElementById("editProductNameInput");
+
+    const productName =
+        productNameInput?.value.trim() || "";
+
+
+    if(!productName){
+
+        alert(
+            "상품명을 입력해주세요."
+        );
+
+        focusInput("editProductNameInput");
         return;
     }
 
@@ -1200,6 +1303,7 @@ function saveEditedInventory(){
         inventoryData[editingInventoryIndex];
 
 
+    item["상품명"] = productName;
     item["랙"] = rack;
     item["소비기한"] = expiry;
     item["수량"] = quantity;
