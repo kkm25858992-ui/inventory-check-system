@@ -768,13 +768,24 @@ function showEditInventoryScreen(index){
                 상품명
             </div>
 
-            <input
-                id="editProductNameInput"
-                type="text"
-                autocomplete="off"
-                value="${escapeHtml(productName)}"
-                placeholder="상품명을 입력하세요"
-            >
+            <div class="autocomplete-container">
+
+                <input
+                    id="editProductNameInput"
+                    type="text"
+                    autocomplete="off"
+                    value="${escapeHtml(productName)}"
+                    placeholder="상품명을 입력하세요"
+                    oninput="searchEditProductName()"
+                    onkeydown="editProductNameKeyDown(event)"
+                >
+
+                <div
+                    id="editProductSuggestions"
+                    class="product-suggestions"
+                ></div>
+
+            </div>
 
 
             <div class="qty-title">
@@ -887,6 +898,156 @@ function showEditInventoryScreen(index){
 
     `;
 
+
+    focusInput("editProductNameInput");
+}
+
+
+/* =========================================================
+   수정 - 상품명 검색
+========================================================= */
+
+function searchEditProductName(){
+
+    const input =
+        document.getElementById("editProductNameInput");
+
+    const suggestionBox =
+        document.getElementById("editProductSuggestions");
+
+    if(!input || !suggestionBox){
+        return;
+    }
+
+    const keyword =
+        input.value
+            .trim()
+            .toLowerCase();
+
+    if(!keyword){
+
+        suggestionBox.innerHTML = "";
+        suggestionBox.style.display = "none";
+        window.editProductSearchResults = [];
+        return;
+    }
+
+    const mappingData =
+        getMappingData();
+
+    const results =
+        mappingData.filter(function(item){
+
+            const productName =
+                String(item["상품명"] ?? "")
+                    .trim();
+
+            return productName
+                .toLowerCase()
+                .includes(keyword);
+        });
+
+    const limitedResults =
+        results.slice(0, 20);
+
+    window.editProductSearchResults =
+        limitedResults;
+
+    if(limitedResults.length === 0){
+
+        suggestionBox.innerHTML = `
+            <div class="no-suggestion">
+                검색 결과가 없습니다.
+            </div>
+        `;
+
+        suggestionBox.style.display = "block";
+        return;
+    }
+
+    suggestionBox.innerHTML =
+        limitedResults
+            .map(function(item, index){
+
+                return `
+                    <div
+                        class="product-suggestion"
+                        onclick="selectEditProduct(${index})"
+                    >
+                        <div class="suggestion-name">
+                            ${escapeHtml(item["상품명"])}
+                        </div>
+
+                        <div class="suggestion-info">
+                            화주사:
+                            ${escapeHtml(item["화주사"])}
+                            &nbsp; | &nbsp;
+                            바코드:
+                            ${escapeHtml(item["바코드"])}
+                        </div>
+                    </div>
+                `;
+            })
+            .join("");
+
+    suggestionBox.style.display = "block";
+}
+
+
+/* =========================================================
+   수정 - 상품명 검색 결과 선택
+========================================================= */
+
+function selectEditProduct(index){
+
+    const results =
+        window.editProductSearchResults
+        || [];
+
+    const product =
+        results[index];
+
+    if(!product){
+        return;
+    }
+
+    const input =
+        document.getElementById("editProductNameInput");
+
+    const suggestionBox =
+        document.getElementById("editProductSuggestions");
+
+    if(input){
+        input.value =
+            String(product["상품명"] ?? "").trim();
+    }
+
+    if(suggestionBox){
+        suggestionBox.innerHTML = "";
+        suggestionBox.style.display = "none";
+    }
+}
+
+
+/* =========================================================
+   수정 - 상품명 Enter
+========================================================= */
+
+function editProductNameKeyDown(event){
+
+    if(event.key !== "Enter"){
+        return;
+    }
+
+    event.preventDefault();
+
+    const results =
+        window.editProductSearchResults
+        || [];
+
+    if(results.length > 0){
+        selectEditProduct(0);
+    }
 
     focusInput("editRackInput");
 }
